@@ -66,25 +66,138 @@
 
         /* Animación personalizada para el ecualizador de la radio */
         @keyframes eq-bar {
-            0% {
-                height: 3px;
-            }
-
-            100% {
-                height: 14px;
-            }
+            0% { height: 3px; }
+            100% { height: 14px; }
         }
 
-        .eq-bar-1 {
-            animation: eq-bar 0.6s ease-in-out infinite alternate;
+        .eq-bar-1 { animation: eq-bar 0.6s ease-in-out infinite alternate; }
+        .eq-bar-2 { animation: eq-bar 0.4s ease-in-out infinite alternate 0.2s; }
+        .eq-bar-3 { animation: eq-bar 0.5s ease-in-out infinite alternate 0.1s; }
+
+        /* ══════════════════════════════════════════════
+           REPRODUCTOR FLOTANTE PERSISTENTE
+        ══════════════════════════════════════════════ */
+        #floatingRadioPlayer {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            z-index: 9999;
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+            pointer-events: none;
+        }
+        #floatingRadioPlayer.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+        .radio-pill {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: linear-gradient(135deg, #1a222d 0%, #0f1620 100%);
+            border: 1px solid rgba(194,159,109,0.35);
+            border-radius: 100px;
+            padding: 10px 20px 10px 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(194,159,109,0.15) inset;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            min-width: 260px;
+            max-width: 340px;
+        }
+        .radio-pill-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #c29f6d;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.25s, transform 0.2s;
+            color: #1a222d;
+            font-size: 12px;
+        }
+        .radio-pill-btn:hover {
+            background: #fff;
+            transform: scale(1.1);
+        }
+        .radio-pill-btn.loading {
+            animation: spin 1s linear infinite;
+            background: rgba(194,159,109,0.4);
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .radio-pill-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .radio-pill-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: #c29f6d;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+        .radio-pill-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+            margin-top: 2px;
+        }
+        .radio-pill-eq {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 14px;
+        }
+        .radio-pill-eq span {
+            display: block;
+            width: 2.5px;
+            background: #c29f6d;
+            border-radius: 2px;
+        }
+        .radio-pill-close {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 9px;
+            flex-shrink: 0;
+            transition: background 0.2s, color 0.2s;
+        }
+        .radio-pill-close:hover {
+            background: rgba(220,50,50,0.25);
+            color: #ff6b6b;
         }
 
-        .eq-bar-2 {
-            animation: eq-bar 0.4s ease-in-out infinite alternate 0.2s;
+        /* Scroll marquee for long song titles */
+        @keyframes marquee {
+            0%   { transform: translateX(0); }
+            40%  { transform: translateX(0); }
+            90%  { transform: translateX(var(--marquee-offset, -50%)); }
+            100% { transform: translateX(var(--marquee-offset, -50%)); }
         }
-
-        .eq-bar-3 {
-            animation: eq-bar 0.5s ease-in-out infinite alternate 0.1s;
+        .marquee-active {
+            animation: marquee 8s ease-in-out infinite alternate;
         }
     </style>
 </head>
@@ -634,6 +747,37 @@
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         REPRODUCTOR DE RADIO FLOTANTE PERSISTENTE
+         Vive fuera del <main> para sobrevivir la navegación PJAX
+    ═══════════════════════════════════════════════════════════ -->
+    <div id="floatingRadioPlayer" aria-label="Reproductor de radio flotante">
+        <div class="radio-pill">
+            <!-- Botón Play/Pausa -->
+            <button id="floatRadioBtn" class="radio-pill-btn" onclick="floatTogglePlay()" aria-label="Play/Pausa radio">
+                <i id="floatRadioIcon" class="fa-solid fa-pause"></i>
+            </button>
+
+            <!-- Info de la estación -->
+            <div class="radio-pill-info" style="overflow:hidden;">
+                <span class="radio-pill-label">🔴 En vivo · Radio</span>
+                <span id="floatRadioTitle" class="radio-pill-title">Radio La Voz de Dios</span>
+            </div>
+
+            <!-- Ecualizador animado -->
+            <div id="floatRadioEq" class="radio-pill-eq hidden">
+                <span style="height:5px;" class="eq-bar-1"></span>
+                <span style="height:10px;" class="eq-bar-2"></span>
+                <span style="height:7px;" class="eq-bar-3"></span>
+            </div>
+
+            <!-- Botón cerrar -->
+            <button class="radio-pill-close" onclick="floatClosePlayer()" aria-label="Cerrar reproductor">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Botón Ir Arriba (Back to Top) -->
     <button id="backToTopBtn" onclick="scrollToTop()"
         class="fixed bottom-6 right-6 z-50 bg-iskDark hover:bg-iskGold text-white hover:text-iskDark w-10 h-10 rounded-full flex items-center justify-center shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 focus:outline-none"
@@ -921,68 +1065,7 @@
             }, 4500);
         }
 
-        // Control de Reproductor de Radio Minimalista
-        const radioAudio = document.getElementById('radioAudio');
-        const radioPlayBtn = document.getElementById('radioPlayBtn');
-        const radioPlayIcon = document.getElementById('radioPlayIcon');
-        const radioEqualizer = document.getElementById('radioEqualizer');
-        const radioMetadataText = document.getElementById('radioMetadataText');
-        let radioSseSource = null;
-
-        function toggleRadioPlay() {
-            if (radioAudio.paused) {
-                // Forzar recarga del stream para evitar el desfase de caché del buffer
-                radioAudio.load();
-                radioAudio.play().then(() => {
-                    radioPlayIcon.className = "fa-solid fa-pause text-xs";
-                    radioEqualizer.classList.remove('hidden');
-                    showToast("Radio Conectada", "Sintonizando señal en vivo...", "bg-iskDark", "fa-solid fa-radio");
-                }).catch(err => {
-                    console.error("No se pudo reproducir el streaming de radio:", err);
-                    showToast("Error de Conexión", "No se pudo iniciar el streaming de radio.", "bg-amber-700", "fa-solid fa-triangle-exclamation");
-                });
-            } else {
-                radioAudio.pause();
-                radioPlayIcon.className = "fa-solid fa-play text-xs pl-0.5";
-                radioEqualizer.classList.add('hidden');
-            }
-        }
-
-        // Suscripción a Metadatos en Tiempo Real desde la API SSE de Zeno FM
-        function subscribeRadioMetadata() {
-            const sseUrl = "https://api.zeno.fm/mounts/metadata/subscribe/sv471at28zhvv";
-
-            try {
-                if (radioSseSource) {
-                    radioSseSource.close();
-                }
-
-                radioSseSource = new EventSource(sseUrl);
-
-                radioSseSource.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        if (data && data.streamTitle) {
-                            // Mostrar título de la canción y artista transmitiéndose actualmente
-                            radioMetadataText.innerText = data.streamTitle;
-                        } else {
-                            radioMetadataText.innerText = "Tabernáculo La Voz de Dios";
-                        }
-                    } catch (e) {
-                        radioMetadataText.innerText = "Tabernáculo La Voz de Dios";
-                    }
-                };
-
-                radioSseSource.onerror = (err) => {
-                    console.warn("Error en canal SSE de metadatos de radio. Reintentando...");
-                    radioMetadataText.innerText = "Radio La Voz de Dios";
-                };
-
-            } catch (error) {
-                console.error("Suscripción de metadatos no soportada en este navegador:", error);
-                radioMetadataText.innerText = "Radio La Voz de Dios";
-            }
-        }
+        // El reproductor de radio es manejado por radio.js (ver script al final del body)
 
 
 
@@ -1125,29 +1208,8 @@
             checkYouTubeLiveStatus();
         }
 
-        // Interceptar clicks para navegación sin recarga de página (mantiene la radio activa)
-        document.addEventListener('click', (event) => {
-            const target = event.target.closest('a');
-            if (target && target.href) {
-                const url = new URL(target.href);
-                if (url.origin === window.location.origin) {
-                    const currentPath = window.location.pathname;
-                    const targetPath = url.pathname;
-
-                    // Si es una página interna .html o la raíz
-                    if (targetPath.endsWith('.html') || targetPath === '/' || targetPath.endsWith('/')) {
-                        // Si es un ancla a la misma página, dejamos que el navegador haga el comportamiento estándar
-                        if (targetPath === currentPath && url.hash) {
-                            return;
-                        }
-
-                        event.preventDefault();
-                        history.pushState(null, '', target.href);
-                        loadPage(target.href, url.hash);
-                    }
-                }
-            }
-        });
+        // NOTA: El interceptor de navegación PJAX ya está registrado arriba (línea ~663).
+        // Se eliminó este duplicado para evitar doble-intercepción de clicks.
 
         // Escuchar el botón atrás/adelante del navegador
         window.addEventListener('popstate', () => {
@@ -1158,11 +1220,13 @@
         window.onload = function () {
             calculateDonationImpact();
             startCarouselTimer();
-            checkYouTubeLiveStatus(); // Disparar la comprobación de streaming en vivo automática
-            subscribeRadioMetadata(); // Escuchar la señal de metadatos de Zeno FM
+            checkYouTubeLiveStatus();
             document.getElementById('currentYear').textContent = new Date().getFullYear();
         }
     </script>
+
+    <!-- Reproductor de radio compartido (auto-reanuda entre páginas) -->
+    <script src="radio.js"></script>
 </body>
 
 </html>
