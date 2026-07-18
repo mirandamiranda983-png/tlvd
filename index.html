@@ -706,47 +706,6 @@
         </div>
     </div>
 
-
-
-    <!-- Modal 3: Detalle de Ministerios -->
-    <div id="service-modal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 hidden backdrop-blur-sm">
-        <div
-            class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0 modal-container">
-            <div class="bg-iskDark p-6 text-white flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-circle-info text-iskGold text-xl"></i>
-                    <h3 id="serviceModalTitle" class="font-bold text-lg uppercase tracking-wider">Detalles</h3>
-                </div>
-                <button onclick="closeServiceModal()"
-                    class="text-white hover:text-iskGold text-xl focus:outline-none p-1">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="p-8 space-y-6">
-                <p id="serviceModalDescription" class="text-gray-600 leading-relaxed text-sm md:text-base">
-                    Información detallada.
-                </p>
-                <div class="pt-4 border-t border-gray-100 flex justify-end space-x-3">
-                    <button onclick="closeServiceModal()"
-                        class="px-5 py-2.5 rounded border border-gray-300 text-xs font-bold uppercase tracking-wider hover:bg-gray-50 transition duration-200">
-                        Cerrar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notificación Toast Dinámica para acciones exitosas -->
-    <div id="toastNotification"
-        class="fixed bottom-20 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-500 bg-[#1e4620] text-white px-6 py-4 rounded-xl shadow-2xl flex items-center space-x-3 pointer-events-none">
-        <i class="fa-solid fa-circle-check text-xl text-iskGold"></i>
-        <div class="flex flex-col">
-            <span class="font-bold text-sm" id="toastTitle">¡Éxito!</span>
-            <span class="text-xs text-green-100" id="toastMessage">Tu solicitud ha sido procesada correctamente.</span>
-        </div>
-    </div>
-
     <!-- ═══════════════════════════════════════════════════════════
          REPRODUCTOR DE RADIO FLOTANTE PERSISTENTE
          Vive fuera del <main> para sobrevivir la navegación PJAX
