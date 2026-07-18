@@ -451,7 +451,7 @@
                                 de....
                             </p>
                         </div>
-                        <a href="puntos_doctrinales.html"
+                        <a href="puntos_doctrinales"
                             class="inline-block bg-transparent hover:bg-iskGold hover:text-iskDark text-iskGold border border-iskGold/50 hover:border-iskGold text-xs font-bold uppercase tracking-widest py-3 px-8 rounded-full transition duration-300 shadow-md">
                             Saber más
                         </a>
@@ -881,12 +881,12 @@
         });
 
         function updateActiveNav() {
-            const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+            const currentPath = window.location.pathname.split('/').pop() || '';
             const desktopLinks = document.querySelectorAll('.hidden.lg\\:flex a');
 
             desktopLinks.forEach(link => {
                 const urlObj = new URL(link.href, window.location.origin);
-                const linkPath = urlObj.pathname.split('/').pop() || 'index.html';
+                const linkPath = urlObj.pathname.split('/').pop() || '';
 
                 // Reset classes to inactive
                 link.classList.remove('text-iskDark', 'border-b-2', 'border-iskGold');
