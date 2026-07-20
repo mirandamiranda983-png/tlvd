@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Seguro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div id="auth-container" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <h2 id="form-title" class="text-2xl font-bold mb-6 text-center text-gray-800">Iniciar Sesión</h2>
+        
+        <form id="auth-form" class="space-y-4">
+            <input type="email" id="email" placeholder="Correo electrónico" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+            <input type="password" id="password" placeholder="Contraseña" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+            
+            <button type="submit" id="submit-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Entrar</button>
+        </form>
+
+        <div class="mt-4 text-center">
+            <button onclick="toggleMode()" id="toggle-text" class="text-blue-600 text-sm block w-full">¿No tienes cuenta? Crea una</button>
+            <button onclick="resetPassword()" class="text-gray-500 text-xs mt-2 underline">¿Olvidaste tu contraseña?</button>
+        </div>
+
+        <div class="my-6 border-t flex justify-center">
+            <button id="google-btn" class="mt-4 flex items-center gap-2 bg-white border px-6 py-2 rounded-full shadow-sm hover:bg-gray-50">
+                <span>Google</span>
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Importaciones usando la CDN oficial de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Tu configuración oficial
+        const firebaseConfig = {
+            apiKey: "AIzaSyCS4QGSz_ZVBIrevOLT7Ad6DXVLufKxLmk",
+            authDomain: "tlvd-6cf32.firebaseapp.com",
+            projectId: "tlvd-6cf32",
+            storageBucket: "tlvd-6cf32.firebasestorage.app",
+            messagingSenderId: "249745100905",
+            appId: "1:249745100905:web:f4d0905eed777ed3f6d2f8",
+            measurementId: "G-1S1NYNMLPW"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        let isLogin = true;
+
+        window.toggleMode = () => {
+            isLogin = !isLogin;
+            document.getElementById('form-title').innerText = isLogin ? 'Iniciar Sesión' : 'Crear Cuenta';
+            document.getElementById('submit-btn').innerText = isLogin ? 'Entrar' : 'Registrarse';
+            document.getElementById('toggle-text').innerText = isLogin ? '¿No tienes cuenta? Crea una' : '¿Ya tienes cuenta? Inicia sesión';
+        };
+
+        window.resetPassword = async () => {
+            const email = document.getElementById('email').value;
+            if (!email) {
+                alert("Por favor, ingresa tu correo primero.");
+                return;
+            }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                alert("Se ha enviado un correo de recuperación a tu dirección.");
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        };
+
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+
+            try {
+                if (isLogin) {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    alert("¡Sesión iniciada correctamente!");
+                } else {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                    await setDoc(doc(db, "users", userCredential.user.uid), {
+                        email: email,
+                        createdAt: new Date()
+                    });
+                    alert("Cuenta creada con éxito.");
+                }
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        });
+
+        document.getElementById('google-btn').addEventListener('click', async () => {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                await setDoc(doc(db, "users", result.user.uid), {
+                    email: result.user.email,
+                    googleLinked: true,
+                    lastLogin: new Date()
+                }, { merge: true });
+                alert("Bienvenido " + result.user.displayName);
+            } catch (err) {
+                alert("Error con Google: " + err.message);
+            }
+        });
+    </script>
+</body>
+</html>
