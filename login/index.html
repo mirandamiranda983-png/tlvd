@@ -7,47 +7,61 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --brand-color: #CA9E67; }
-        body { background-color: #f5f5f4; font-family: 'Inter', sans-serif; }
-        .border-brand { border-color: var(--brand-color); }
         .bg-brand { background-color: var(--brand-color); }
         .text-brand { color: var(--brand-color); }
-        .input-focus:focus { border-color: var(--brand-color); ring-color: var(--brand-color); }
-        .toast-enter { animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .border-brand { border-color: var(--brand-color); }
+        .input-focus:focus { border-color: var(--brand-color); outline-color: var(--brand-color); }
+        
+        /* Custom Toast Animation */
+        .toast { transition: all 0.3s ease; transform: translateY(-20px); opacity: 0; }
+        .toast.show { transform: translateY(0); opacity: 1; }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="bg-stone-100 flex items-center justify-center min-h-screen p-4">
 
-    <div id="auth-container" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-4 border-brand">
-        
+    <!-- Notificaciones Personalizadas -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <div id="auth-container" class="bg-white p-8 rounded-[2rem] shadow-2xl w-full max-w-sm border-t-8 border-brand">
         <div class="flex justify-center mb-6">
-            <img src="https://lh3.googleusercontent.com/d/1nn9ImcQDkF63mrEWBCi7t2sJTviiWOQD" alt="Logo" class="h-24 w-auto object-contain" onerror="this.src='https://placehold.co/200x200/CA9E67/white?text=Logo'">
+            <img src="https://lh3.googleusercontent.com/d/1nn9ImcQDkF63mrEWBCi7t2sJTviiWOQD" alt="Logo" class="h-24 w-auto object-contain">
         </div>
 
-        <h2 id="form-title" class="text-2xl font-semibold text-stone-800 text-center mb-8">Iniciar Sesión</h2>
+        <h2 id="form-title" class="text-2xl font-bold text-stone-800 text-center mb-6">Iniciar Sesión</h2>
         
         <form id="auth-form" class="space-y-4">
             <div id="name-fields" class="hidden space-y-4">
-                <input type="text" id="firstName" placeholder="Nombre" class="w-full p-3 bg-stone-50 border rounded-xl outline-none input-focus focus:ring-1">
-                <input type="text" id="lastName" placeholder="Apellido" class="w-full p-3 bg-stone-50 border rounded-xl outline-none input-focus focus:ring-1">
+                <input type="text" id="firstName" placeholder="Nombre" class="w-full p-4 border rounded-2xl input-focus bg-stone-50">
+                <input type="text" id="lastName" placeholder="Apellido" class="w-full p-4 border rounded-2xl input-focus bg-stone-50">
             </div>
-            
-            <input type="email" id="email" placeholder="Correo electrónico" class="w-full p-3 bg-stone-50 border rounded-xl outline-none input-focus focus:ring-1" required>
-            <input type="password" id="password" placeholder="Contraseña" class="w-full p-3 bg-stone-50 border rounded-xl outline-none input-focus focus:ring-1" required>
-            
-            <button type="submit" id="submit-btn" class="w-full bg-brand text-white py-3 rounded-xl font-bold hover:brightness-110 transition-all shadow-lg">Entrar</button>
+            <input type="email" id="email" placeholder="Correo electrónico" class="w-full p-4 border rounded-2xl input-focus bg-stone-50" required>
+            <input type="password" id="password" placeholder="Contraseña" class="w-full p-4 border rounded-2xl input-focus bg-stone-50" required>
+            <button type="submit" id="submit-btn" class="w-full bg-brand text-white py-4 rounded-2xl font-bold hover:opacity-90 transition shadow-lg shadow-brand/20">Entrar</button>
         </form>
 
-        <div class="mt-6 flex flex-col items-center gap-4">
-            <button id="google-btn" class="w-full flex items-center justify-center gap-2 border border-stone-200 py-3 rounded-xl hover:bg-stone-50 transition">
-                <img src="https://www.google.com/favicon.ico" class="w-5 h-5"> Google
+        <div class="mt-6 flex flex-col gap-4">
+            <button id="google-btn" class="w-full flex items-center justify-center gap-3 border py-4 rounded-2xl hover:bg-stone-50 transition font-medium text-stone-700">
+                <img src="https://www.google.com/favicon.ico" class="w-5 h-5"> Continuar con Google
             </button>
-            <button onclick="toggleMode()" id="toggle-text" class="text-stone-500 text-sm hover:text-brand transition">¿No tienes cuenta? <span class="font-bold underline">Crea una</span></button>
-            <button onclick="showResetUI()" class="text-stone-400 text-xs hover:text-stone-600 transition">¿Olvidaste tu contraseña?</button>
+            <div class="text-center text-sm text-stone-500">
+                <span id="toggle-label">¿No tienes cuenta?</span> 
+                <button onclick="toggleMode()" id="toggle-btn" class="text-brand font-bold underline">Crea una</button>
+            </div>
+            <button onclick="showResetUI()" class="text-stone-400 text-xs text-center hover:text-brand transition">¿Olvidaste tu contraseña?</button>
         </div>
     </div>
 
-    <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2"></div>
+    <!-- Modal Recuperación -->
+    <div id="reset-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-xs shadow-2xl">
+            <h3 class="font-bold text-lg mb-4">Recuperar acceso</h3>
+            <input type="email" id="reset-email" placeholder="Ingresa tu correo" class="w-full p-3 border rounded-xl mb-4 bg-stone-50">
+            <div class="flex gap-2">
+                <button onclick="hideResetUI()" class="flex-1 py-2 text-stone-500 font-medium">Cancelar</button>
+                <button onclick="executeReset()" class="flex-1 bg-brand text-white py-2 rounded-xl font-bold">Enviar</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -63,31 +77,74 @@
             appId: "1:249745100905:web:f4d0905eed777ed3f6d2f8",
             measurementId: "G-1S1NYNMLPW" 
         };
-        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        window.isLogin = true;
+        const showToast = (msg, type = 'success') => {
+            const container = document.getElementById('toast-container');
+            const div = document.createElement('div');
+            div.className = `p-4 rounded-2xl shadow-xl text-white font-medium ${type === 'success' ? 'bg-green-600' : 'bg-red-500'} toast`;
+            div.innerText = msg;
+            container.appendChild(div);
+            setTimeout(() => div.classList.add('show'), 10);
+            setTimeout(() => {
+                div.classList.remove('show');
+                setTimeout(() => div.remove(), 300);
+            }, 3000);
+        };
+
         window.toggleMode = () => {
-            isLogin = !isLogin;
-            document.getElementById('form-title').innerText = isLogin ? "Iniciar Sesión" : "Crear Cuenta";
-            document.getElementById('submit-btn').innerText = isLogin ? "Entrar" : "Registrarse";
-            document.getElementById('toggle-text').innerHTML = isLogin ? "¿No tienes cuenta? <span class='font-bold underline'>Crea una</span>" : "¿Ya tienes cuenta? <span class='font-bold underline'>Inicia sesión</span>";
-            document.getElementById('name-fields').classList.toggle('hidden', isLogin);
+            const isLogin = document.getElementById('form-title').innerText === "Iniciar Sesión";
+            document.getElementById('form-title').innerText = isLogin ? "Crear Cuenta" : "Iniciar Sesión";
+            document.getElementById('submit-btn').innerText = isLogin ? "Registrarse" : "Entrar";
+            document.getElementById('toggle-label').innerText = isLogin ? "¿Ya tienes cuenta?" : "¿No tienes cuenta?";
+            document.getElementById('toggle-btn').innerText = isLogin ? "Inicia sesión" : "Crea una";
+            document.getElementById('name-fields').classList.toggle('hidden', !isLogin);
             document.getElementById('auth-form').reset();
         };
 
-        window.showToast = (msg, color) => {
-            const toast = document.createElement('div');
-            toast.className = `p-4 rounded-xl text-white shadow-xl toast-enter ${color === 'red' ? 'bg-red-500' : 'bg-brand'}`;
-            toast.innerText = msg;
-            document.getElementById('toast-container').appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
+        window.showResetUI = () => document.getElementById('reset-modal').classList.remove('hidden');
+        window.hideResetUI = () => document.getElementById('reset-modal').classList.add('hidden');
+
+        document.getElementById('auth-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const isLogin = document.getElementById('form-title').innerText === "Iniciar Sesión";
+            
+            try {
+                if (isLogin) {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    showToast("¡Bienvenido de nuevo!");
+                } else {
+                    const res = await createUserWithEmailAndPassword(auth, email, pass);
+                    await setDoc(doc(db, "users", res.user.uid), {
+                        firstName: document.getElementById('firstName').value,
+                        lastName: document.getElementById('lastName').value,
+                        email
+                    });
+                    showToast("Cuenta creada con éxito");
+                }
+            } catch (err) { showToast(err.message, 'error'); }
         };
-        
-        // ... (Logic for handling submit, google login, etc.)
+
+        document.getElementById('google-btn').onclick = async () => {
+            try {
+                await signInWithPopup(auth, provider);
+                showToast("Sesión iniciada con Google");
+            } catch (err) { showToast("Error: " + err.message, 'error'); }
+        };
+
+        window.executeReset = async () => {
+            const email = document.getElementById('reset-email').value;
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showToast("Correo de recuperación enviado.");
+                hideResetUI();
+            } catch (err) { showToast(err.message, 'error'); }
+        };
     </script>
 </body>
 </html>
