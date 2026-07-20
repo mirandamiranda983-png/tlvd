@@ -7,43 +7,46 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --brand-color: #CA9E67; }
+        body { background-color: #f5f5f4; font-family: 'Inter', sans-serif; }
+        .border-brand { border-color: var(--brand-color); }
         .bg-brand { background-color: var(--brand-color); }
         .text-brand { color: var(--brand-color); }
-        .border-brand { border-color: var(--brand-color); }
+        .input-focus:focus { border-color: var(--brand-color); ring-color: var(--brand-color); }
         .toast-enter { animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
-<body class="bg-stone-100 flex items-center justify-center min-h-screen p-4">
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <div id="auth-container" class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-sm transition-all duration-500 border-t-4 border-brand">
+    <div id="auth-container" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-4 border-brand">
         
-        <!-- Logo -->
         <div class="flex justify-center mb-6">
-            <img src="https://lh3.googleusercontent.com/d/1nn9ImcQDkF63mrEWBCi7t2sJTviiWOQD" alt="Logo" class="h-20 w-auto object-contain" onerror="this.src='https://placehold.co/200x200/CA9E67/white?text=Logo'">
+            <img src="https://lh3.googleusercontent.com/d/1nn9ImcQDkF63mrEWBCi7t2sJTviiWOQD" alt="Logo" class="h-24 w-auto object-contain" onerror="this.src='https://placehold.co/200x200/CA9E67/white?text=Logo'">
         </div>
 
-        <h2 id="form-title" class="text-2xl font-bold mb-6 text-center text-stone-800">Iniciar Sesión</h2>
+        <h2 id="form-title" class="text-2xl font-semibold text-stone-800 text-center mb-8">Iniciar Sesión</h2>
         
         <form id="auth-form" class="space-y-4">
             <div id="name-fields" class="hidden space-y-4">
-                <input type="text" id="firstName" placeholder="Nombre" class="w-full p-3 bg-stone-50 border rounded-lg outline-none focus:ring-2 focus:ring-[#CA9E67]">
-                <input type="text" id="lastName" placeholder="Apellido" class="w-full p-3 bg-stone-50 border rounded-lg outline-none focus:ring-2 focus:ring-[#CA9E67]">
+                <input type="text" id="firstName" placeholder="Nombre" class="w-full p-3 bg-stone-50 border rounded-xl outline-none input-focus focus:ring-1">
+                <input type="text" id="lastName" placeholder="Apellido" class="w-full p-3 bg-stone-50 border rounded-xl outline-none input-focus focus:ring-1">
             </div>
             
-            <input type="email" id="email" placeholder="Correo electrónico" class="w-full p-3 bg-stone-50 border rounded-lg outline-none focus:ring-2 focus:ring-[#CA9E67]" required>
-            <input type="password" id="password" placeholder="Contraseña" class="w-full p-3 bg-stone-50 border rounded-lg outline-none focus:ring-2 focus:ring-[#CA9E67]" required>
+            <input type="email" id="email" placeholder="Correo electrónico" class="w-full p-3 bg-stone-50 border rounded-xl outline-none input-focus focus:ring-1" required>
+            <input type="password" id="password" placeholder="Contraseña" class="w-full p-3 bg-stone-50 border rounded-xl outline-none input-focus focus:ring-1" required>
             
-            <button type="submit" id="submit-btn" class="w-full bg-brand text-white py-3 rounded-lg font-bold hover:opacity-90 transition-all shadow-md">Entrar</button>
+            <button type="submit" id="submit-btn" class="w-full bg-brand text-white py-3 rounded-xl font-bold hover:brightness-110 transition-all shadow-lg">Entrar</button>
         </form>
 
-        <div class="mt-6 text-center space-y-3">
-            <button onclick="toggleMode()" id="toggle-text" class="text-stone-600 text-sm hover:text-brand transition">¿No tienes cuenta? <span class="font-bold underline">Crea una</span></button>
-            <button onclick="showResetUI()" class="text-stone-400 text-xs block w-full hover:text-stone-600 transition">¿Olvidaste tu contraseña?</button>
+        <div class="mt-6 flex flex-col items-center gap-4">
+            <button id="google-btn" class="w-full flex items-center justify-center gap-2 border border-stone-200 py-3 rounded-xl hover:bg-stone-50 transition">
+                <img src="https://www.google.com/favicon.ico" class="w-5 h-5"> Google
+            </button>
+            <button onclick="toggleMode()" id="toggle-text" class="text-stone-500 text-sm hover:text-brand transition">¿No tienes cuenta? <span class="font-bold underline">Crea una</span></button>
+            <button onclick="showResetUI()" class="text-stone-400 text-xs hover:text-stone-600 transition">¿Olvidaste tu contraseña?</button>
         </div>
     </div>
 
-    <!-- Contenedor de notificaciones -->
     <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2"></div>
 
     <script type="module">
@@ -51,8 +54,16 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración (REEMPLAZA CON TU BLOQUE)
-        const firebaseConfig = { /* ... tu configuración ... */ };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCS4QGSz_ZVBIrevOLT7Ad6DXVLufKxLmk",
+            authDomain: "tlvd-6cf32.firebaseapp.com",
+            projectId: "tlvd-6cf32",
+            storageBucket: "tlvd-6cf32.firebasestorage.app",
+            messagingSenderId: "249745100905",
+            appId: "1:249745100905:web:f4d0905eed777ed3f6d2f8",
+            measurementId: "G-1S1NYNMLPW" 
+        };
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -70,11 +81,13 @@
 
         window.showToast = (msg, color) => {
             const toast = document.createElement('div');
-            toast.className = `p-4 rounded-lg text-white shadow-lg toast-enter ${color === 'red' ? 'bg-red-500' : 'bg-green-600'}`;
+            toast.className = `p-4 rounded-xl text-white shadow-xl toast-enter ${color === 'red' ? 'bg-red-500' : 'bg-brand'}`;
             toast.innerText = msg;
             document.getElementById('toast-container').appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
         };
+        
+        // ... (Logic for handling submit, google login, etc.)
     </script>
 </body>
 </html>
