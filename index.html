@@ -305,9 +305,9 @@
                 <div class="hidden lg:flex items-center space-x-8">
                     <a href="/"
                         class="text-xs font-bold text-iskDark hover:text-iskGold uppercase tracking-widest border-b-2 border-iskGold pb-1 transition duration-200">Inicio</a>
-                    <a href="/index#servicios-envivo"
+                    <a href="https://tlvd.org/#servicios-envivo"
                         class="text-xs font-bold text-gray-600 hover:text-iskDark uppercase tracking-widest pb-1 transition duration-200">Servicios</a>
-                    <a href="contactanos"
+                    <a href="https://tlvd.org/contactanos"
                         class="text-xs font-bold text-gray-600 hover:text-iskDark uppercase tracking-widest pb-1 transition duration-200">Contáctanos</a>
                 </div>
 
@@ -325,9 +325,9 @@
                 class="hidden lg:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-3 shadow-lg">
                 <a href="/"
                     class="block text-sm font-semibold text-iskDark hover:bg-gray-50 px-3 py-2 rounded-md">Inicio</a>
-                <a href="/servicios-envivo"
+                <a href="https://tlvd.org/#servicios-envivo"
                     class="block text-sm font-semibold text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">Servicios</a>
-                <a href="contactanos"
+                <a href="https://tlvd.org/contactanos"
                     class="block text-sm font-semibold text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">Contáctanos</a>
             </div>
     </header>
@@ -634,10 +634,10 @@
                 <div
                     class="flex flex-col items-center space-y-4 text-xs font-bold uppercase tracking-widest text-gray-600">
                     <div class="flex flex-wrap justify-center gap-6">
-                        <a href="index" class="hover:text-iskDark transition duration-200">Inicio</a>
-                        <a href="index#servicios-envivo"
+                        <a href="https://tlvd.org/" class="hover:text-iskDark transition duration-200">Inicio</a>
+                        <a href="https://tlvd.org/#servicios-envivo"
                             class="hover:text-iskDark transition duration-200">Servicios</a>
-                        <a href="contactanos" class="hover:text-iskDark transition duration-200">Contáctanos</a>
+                        <a href="https://tlvd.org/contactanos" class="hover:text-iskDark transition duration-200">Contáctanos</a>
                     </div>
                     <!-- Iconos de Redes Sociales Inferiores (a la par y centrado, sin líneas divisorias) -->
                     <div class="flex items-center justify-center space-x-4">
@@ -975,66 +975,6 @@
                 }, 300);
             }
         }
-
-        // Simulación de login de líderes/miembros
-        function handleLoginSubmit(event) {
-            event.preventDefault();
-            toggleModal('login-modal');
-            showToast("Acceso de Miembro", "¡Bienvenido de vuelta a tu portal! Cargando recursos devocionales...", "bg-blue-600", "fa-solid fa-users");
-        }
-
-        // Simulación de solicitud de ofrenda/donación
-        function handleDonationSubmit(event) {
-            event.preventDefault();
-            toggleModal('donar-modal');
-            showToast("¡Muchas Gracias!", "Te hemos enviado las instrucciones de ofrenda y cuentas bancarias a tu número de WhatsApp.", "bg-emerald-600", "fa-solid fa-heart-circle-check");
-        }
-
-        // Calculadora Dinámica de Impacto de Ofrenda
-        function calculateDonationImpact() {
-            const cause = document.getElementById('donationCause').value;
-            const amount = parseInt(document.getElementById('donationAmount').value);
-            let message = "";
-
-            if (cause === 'social') {
-                if (amount === 50) message = "¡Con este aporte apoyas el alimento de 1 niño por una semana completa!";
-                else if (amount === 150) message = "¡Con este aporte provees de útiles escolares a 3 niños de escasos recursos!";
-                else if (amount === 500) message = "¡Con este aporte apoyas la canasta básica familiar de 4 familias este mes!";
-                else message = "¡Grandioso! Este aporte sustenta un comedor comunitario entero durante 3 días.";
-            } else if (cause === 'misiones') {
-                if (amount === 50) message = "¡Este aporte financia material de discipulado para 5 nuevos creyentes!";
-                else if (amount === 150) message = "¡Este aporte apoya el sostenimiento diario de un misionero local!";
-                else if (amount === 500) message = "¡Este aporte nos ayuda a equipar con Biblias a un grupo de vida completo!";
-                else message = "¡Maravilloso! Permite financiar el traslado de un equipo misionero rural.";
-            } else { // Templo / Mantenimiento
-                if (amount === 50) message = "¡Gracias por apoyar el mantenimiento técnico del auditorio!";
-                else if (amount === 150) message = "¡Este aporte ayuda a cubrir la transmisión online de nuestros cultos dominicales!";
-                else if (amount === 500) message = "¡Apoyas directamente la compra de equipos de sonido e iluminación!";
-                else message = "¡Excelente! Destinado a mejoras estructurales del templo y el salón infantil.";
-            }
-
-            document.getElementById('calculatedImpactText').innerText = message;
-        }
-
-        // Gestión interactiva de modales de ministerios
-        let activeMinistryTitle = "";
-        function openServiceModal(title, description) {
-            activeMinistryTitle = title;
-            document.getElementById('serviceModalTitle').innerText = title;
-            document.getElementById('serviceModalDescription').innerHTML = description;
-            toggleModal('service-modal');
-        }
-
-        function closeServiceModal() {
-            toggleModal('service-modal');
-        }
-
-        // Conectar el botón de "Quiero involucrarme" del ministerio
-        function requestQuoteFromService() {
-            closeServiceModal();
-            showToast("¡Contáctanos!", "Para involucrarte en " + activeMinistryTitle + ", llámanos al (47) 3084-5500 o acompáñanos en nuestras reuniones.", "bg-iskDark", "fa-solid fa-phone");
-        }
-
         // Sistema dinámico de Notificaciones Toast
         let toastTimeout;
         function showToast(title, msg, bgColorClass = "bg-emerald-600", iconClass = "fa-circle-check") {
