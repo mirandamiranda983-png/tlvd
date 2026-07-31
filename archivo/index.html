@@ -252,6 +252,41 @@
             transform: translateY(12px) !important;
         }
 
+        /* Evitar que el video se corte o haga zoom en pantalla completa */
+        #videoPlayerWrapper:fullscreen {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            background: #000 !important;
+        }
+
+        #videoPlayerWrapper:fullscreen .relative.w-full {
+            width: 100vw !important;
+            height: calc(100vw * 9 / 16) !important;
+            max-height: 100vh !important;
+            max-width: calc(100vh * 16 / 9) !important;
+            aspect-ratio: 16/9 !important;
+            margin: auto !important;
+        }
+        
+        #videoPlayerWrapper:-webkit-full-screen {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            background: #000 !important;
+        }
+
+        #videoPlayerWrapper:-webkit-full-screen .relative.w-full {
+            width: 100vw !important;
+            height: calc(100vw * 9 / 16) !important;
+            max-height: 100vh !important;
+            max-width: calc(100vh * 16 / 9) !important;
+            aspect-ratio: 16/9 !important;
+            margin: auto !important;
+        }
+
         /* Comentarios */
         .comment-card {
             animation: fadeInUp 0.35s ease both;
@@ -495,7 +530,7 @@
                                 <span id="videoTime" style="color:rgba(255,255,255,0.55);font-size:11px;font-family:monospace;white-space:nowrap;user-select:none;">0:00 / 0:00</span>
                             </div>
 
-                            <!-- Derecha: Volumen + Pantalla Completa -->
+                        <!-- Derecha: Volumen + Pantalla Completa -->
                             <div class="flex items-center gap-2">
 
                                 <!-- Botón Mute -->
@@ -515,6 +550,19 @@
                                     aria-label="Control de volumen"
                                     class="hidden sm:block"
                                     style="width:72px;height:4px;border-radius:9999px;cursor:pointer;outline:none;background:linear-gradient(to right,#c29f6d 100%,rgba(255,255,255,0.15) 100%);">
+
+                                 <!-- Ver en YouTube (Calidad/Configuración) -->
+                                 <a id="youtubeWatchLink"
+                                    href="https://www.youtube.com/watch?v=1MP6zUPumpk"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Ver en YouTube (para cambiar calidad)"
+                                    aria-label="Ver en YouTube para cambiar calidad"
+                                    style="width:28px;height:28px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.65);transition:color 0.2s;flex-shrink:0;"
+                                    onmouseover="this.style.color='#ff0000'"
+                                    onmouseout="this.style.color='rgba(255,255,255,0.65)'">
+                                     <i class="fa-brands fa-youtube" style="font-size:14px;"></i>
+                                 </a>
 
                                 <!-- Pantalla Completa -->
                                 <button onclick="toggleFullscreen()"
@@ -1110,6 +1158,12 @@
         function onPlayerReady(event) {
             // Inicializar UI de volumen al 100%
             updateVolumeSliderUI(100);
+            
+            // Vincular enlace del botón de YouTube dinámicamente
+            const ytLink = document.getElementById('youtubeWatchLink');
+            if (ytLink) {
+                ytLink.href = `https://www.youtube.com/watch?v=${VIDEO_ID}`;
+            }
         }
 
         function onPlayerStateChange(event) {
@@ -1476,7 +1530,11 @@
             // Eventos para mostrar controles al mover el mouse/tocar en la caja del reproductor
             const wrapper = document.getElementById('videoPlayerWrapper');
             if (wrapper) {
-                const showAndReset = () => {
+                const showAndReset = (e) => {
+                    // Evitar activar en dispositivos táctiles para no interferir con el click/tap
+                    if (e && e.pointerType && e.pointerType !== 'mouse') {
+                        return;
+                    }
                     showControls();
                 };
                 wrapper.addEventListener('mousemove', showAndReset);
