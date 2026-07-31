@@ -242,6 +242,16 @@
             transition: opacity 0.25s ease;
         }
 
+        /* Controles en pantalla completa con transición suave */
+        #customControls {
+            transition: opacity 0.3s ease, transform 0.3s ease !important;
+        }
+        .controls-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transform: translateY(12px) !important;
+        }
+
         /* Comentarios */
         .comment-card {
             animation: fadeInUp 0.35s ease both;
@@ -401,7 +411,7 @@
                         ✦ Miercoles 29/07/2026
                     </span>
                     <h1 id="videoTitle" class="text-2xl md:text-4xl font-extrabold text-white tracking-tight leading-tight mt-3">
-                        Tema: La Unión al Concilio
+                        La Unión al Concilio
                     </h1>
                     <div class="w-16 mx-auto mt-6 rounded-full" style="height:2px; background:#c29f6d;"></div>
                 </div>
@@ -418,7 +428,7 @@
                         <div id="videoClickOverlay"
                             class="absolute inset-0 cursor-pointer"
                             style="z-index:10;"
-                            onclick="togglePlayPause()"></div>
+                            onclick="handleOverlayClick()"></div>
 
                         <!-- Ícono grande de Play/Pausa centrado -->
                         <div id="bigPlayIcon"
@@ -520,10 +530,12 @@
                 </div>
 
                 <!-- Atribución discreta -->
-                <p class="text-center mt-5" style="color:rgba(255,255,255,0.25);font-size:11px;">
-                    <i class="fa-brands fa-youtube mr-1" style="color:rgba(255,80,80,0.5);"></i>
-                    Tabernáculo La Voz de Dios
-                </p>
+                <a href="https://www.youtube.com/@TLVD" target="_blank" rel="noopener noreferrer" 
+                   class="inline-flex items-center justify-center gap-1.5 mt-5 hover:text-white transition-colors duration-200 w-full" 
+                   style="color:rgba(255,255,255,0.35); font-size:11px;">
+                    <i class="fa-brands fa-youtube" style="color:#ff0000; font-size:13px;"></i>
+                    <span>Tabernáculo La Voz de Dios</span>
+                </a>
 
             </div>
         </section>
@@ -1025,7 +1037,51 @@
         let ytPlayer        = null;
         let progressInterval = null;
         let isMuted         = false;
+        let controlsTimeout = null;
         const VIDEO_ID      = '1MP6zUPumpk';
+
+        function showControls() {
+            const controls = document.getElementById('customControls');
+            if (!controls) return;
+            controls.classList.remove('controls-hidden');
+            
+            const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+            if (isFs && ytPlayer && typeof ytPlayer.getPlayerState === 'function' && ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+                resetControlsTimeout();
+            }
+        }
+
+        function hideControls() {
+            const controls = document.getElementById('customControls');
+            if (!controls) return;
+            controls.classList.add('controls-hidden');
+        }
+
+        function resetControlsTimeout() {
+            clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(() => {
+                const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+                if (isFs && ytPlayer && typeof ytPlayer.getPlayerState === 'function' && ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+                    hideControls();
+                }
+            }, 3000);
+        }
+
+        function handleOverlayClick() {
+            const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+            if (isFs) {
+                const controls = document.getElementById('customControls');
+                if (controls) {
+                    if (controls.classList.contains('controls-hidden')) {
+                        showControls();
+                    } else {
+                        hideControls();
+                    }
+                }
+            } else {
+                togglePlayPause();
+            }
+        }
 
         // La API de YouTube llama esta función cuando está lista
         function onYouTubeIframeAPIReady() {
@@ -1066,12 +1122,21 @@
                 if (playIcon)  { playIcon.className  = 'fa-solid fa-pause'; playIcon.style.paddingLeft = '0'; }
                 if (bigIcon)   bigIcon.style.opacity = '0';
                 startProgressUpdate();
+                
+                // En pantalla completa, iniciar temporizador de ocultar controles
+                const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+                if (isFs) {
+                    resetControlsTimeout();
+                }
             } else if (event.data === YT.PlayerState.PAUSED) {
                 // Video pausado
                 if (playIcon)  { playIcon.className  = 'fa-solid fa-play'; playIcon.style.paddingLeft = '2px'; }
                 if (bigSymbol) { bigSymbol.className  = 'fa-solid fa-play text-white'; bigSymbol.style.paddingLeft = '4px'; }
                 if (bigIcon)   bigIcon.style.opacity = '1';
                 clearInterval(progressInterval);
+                
+                // Asegurar que se muestran si se pausa
+                showControls();
             } else if (event.data === YT.PlayerState.ENDED) {
                 // Video terminado
                 if (playIcon)  { playIcon.className  = 'fa-solid fa-rotate-right'; playIcon.style.paddingLeft = '0'; }
@@ -1080,6 +1145,9 @@
                 clearInterval(progressInterval);
                 const pb = document.getElementById('progressBar');
                 if (pb) pb.style.width = '100%';
+                
+                // Asegurar que se muestran al terminar
+                showControls();
             } else if (event.data === YT.PlayerState.BUFFERING) {
                 if (bigIcon)   bigIcon.style.opacity = '0';
             }
@@ -1181,10 +1249,26 @@
             const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
             if (!isFs) {
                 const rfs = wrapper.requestFullscreen || wrapper.webkitRequestFullscreen;
-                if (rfs) rfs.call(wrapper).catch(e => console.warn('Fullscreen error:', e));
+                if (rfs) {
+                    rfs.call(wrapper)
+                        .then(() => {
+                            if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                                screen.orientation.lock('landscape').catch(e => console.warn('Orientation lock error:', e));
+                            }
+                        })
+                        .catch(e => console.warn('Fullscreen error:', e));
+                }
             } else {
                 const efs = document.exitFullscreen || document.webkitExitFullscreen;
-                if (efs) efs.call(document).catch(e => console.warn('Exit fullscreen error:', e));
+                if (efs) {
+                    efs.call(document)
+                        .then(() => {
+                            if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+                                screen.orientation.unlock();
+                            }
+                        })
+                        .catch(e => console.warn('Exit fullscreen error:', e));
+                }
             }
         }
 
@@ -1193,20 +1277,43 @@
                 const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
                 const icon = document.getElementById('fullscreenIcon');
                 if (icon) icon.className = isFs ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
-                // En fullscreen mostrar controles correctamente
+                
                 const controls = document.getElementById('customControls');
-                if (controls && isFs) {
-                    controls.style.position = 'absolute';
-                    controls.style.bottom   = '0';
-                    controls.style.left     = '0';
-                    controls.style.right    = '0';
-                    controls.style.zIndex   = '30';
-                } else if (controls) {
-                    controls.style.position = '';
-                    controls.style.bottom   = '';
-                    controls.style.left     = '';
-                    controls.style.right    = '';
-                    controls.style.zIndex   = '';
+                if (controls) {
+                    if (isFs) {
+                        controls.style.position = 'absolute';
+                        controls.style.bottom   = '0';
+                        controls.style.left     = '0';
+                        controls.style.right    = '0';
+                        controls.style.zIndex   = '30';
+                        
+                        // Intentar bloquear orientación a horizontal (landscape)
+                        if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                            screen.orientation.lock('landscape').catch(e => console.warn('Orientation lock error:', e));
+                        }
+                        
+                        // Al entrar en pantalla completa, iniciar temporizador para ocultar controles
+                        resetControlsTimeout();
+                    } else {
+                        controls.style.position = '';
+                        controls.style.bottom   = '';
+                        controls.style.left     = '';
+                        controls.style.right    = '';
+                        controls.style.zIndex   = '';
+                        
+                        // Desbloquear orientación
+                        if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+                            try {
+                                screen.orientation.unlock();
+                            } catch (e) {
+                                console.warn('Orientation unlock error:', e);
+                            }
+                        }
+                        
+                        // Asegurar que se muestran fuera de pantalla completa
+                        showControls();
+                        clearTimeout(controlsTimeout);
+                    }
                 }
             });
         });
@@ -1365,6 +1472,16 @@
         // ── Inicializar cuando el DOM esté listo ──
         document.addEventListener('DOMContentLoaded', () => {
             initComentarios();
+
+            // Eventos para mostrar controles al mover el mouse/tocar en la caja del reproductor
+            const wrapper = document.getElementById('videoPlayerWrapper');
+            if (wrapper) {
+                const showAndReset = () => {
+                    showControls();
+                };
+                wrapper.addEventListener('mousemove', showAndReset);
+                wrapper.addEventListener('pointermove', showAndReset);
+            }
         });
     </script>
 
