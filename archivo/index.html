@@ -463,7 +463,7 @@
                         <div id="videoClickOverlay"
                             class="absolute inset-0 cursor-pointer"
                             style="z-index:10;"
-                            onclick="handleOverlayClick()"></div>
+                            onclick="handleOverlayClick(event)"></div>
 
                         <!-- Ícono grande de Play/Pausa centrado -->
                         <div id="bigPlayIcon"
@@ -1091,6 +1091,15 @@
         function showControls() {
             const controls = document.getElementById('customControls');
             if (!controls) return;
+            
+            // Evitar clicks accidentales durante la transición al mostrarse
+            if (controls.classList.contains('controls-hidden')) {
+                controls.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    controls.style.pointerEvents = '';
+                }, 350);
+            }
+            
             controls.classList.remove('controls-hidden');
             
             const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
@@ -1115,9 +1124,10 @@
             }, 3000);
         }
 
-        function handleOverlayClick() {
+        function handleOverlayClick(event) {
             const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
             if (isFs) {
+                if (event) event.stopPropagation();
                 const controls = document.getElementById('customControls');
                 if (controls) {
                     if (controls.classList.contains('controls-hidden')) {
@@ -1539,6 +1549,25 @@
                 };
                 wrapper.addEventListener('mousemove', showAndReset);
                 wrapper.addEventListener('pointermove', showAndReset);
+
+                // Alternar controles al hacer click/tap en cualquier parte del wrapper en pantalla completa
+                wrapper.addEventListener('click', (e) => {
+                    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+                    if (isFs) {
+                        // Ignorar clicks si ocurren dentro del contenedor de controles
+                        if (e.target.closest('#customControls')) {
+                            return;
+                        }
+                        const controls = document.getElementById('customControls');
+                        if (controls) {
+                            if (controls.classList.contains('controls-hidden')) {
+                                showControls();
+                            } else {
+                                hideControls();
+                            }
+                        }
+                    }
+                });
             }
         });
     </script>
