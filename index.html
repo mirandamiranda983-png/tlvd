@@ -322,11 +322,11 @@
             <!-- Menú Móvil Desplegable -->
             <div id="mobile-menu"
                 class="hidden lg:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-3 shadow-lg">
-                <a href="/"
-                    class="block text-sm font-semibold text-iskDark hover:bg-gray-50 px-3 py-2 rounded-md">Inicio</a>
+                <a href="/" data-nav-link
+                    class="block text-sm font-semibold text-iskDark hover:bg-gray-50 px-3 py-2 rounded-md border-l-4 border-iskGold bg-iskCream/40">Inicio</a>
             
-                <a href="https://tlvd.org/contactanos"
-                    class="block text-sm font-semibold text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md">Contáctanos</a>
+                <a href="https://tlvd.org/contactanos" data-nav-link
+                    class="block text-sm font-semibold text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md border-l-4 border-transparent">Contáctanos</a>
             </div>
     </header>
 
@@ -899,6 +899,22 @@
                     link.classList.add('text-iskDark', 'border-b-2', 'border-iskGold');
                 }
             });
+
+            // Mismo indicador (barrita color iskGold) pero en el menú móvil,
+            // donde antes no existía ninguna marca de "página activa".
+            const mobileLinks = document.querySelectorAll('#mobile-menu a[data-nav-link]');
+            mobileLinks.forEach(link => {
+                const urlObj = new URL(link.href, window.location.origin);
+                const linkPath = urlObj.pathname.split('/').pop() || '';
+
+                link.classList.remove('border-iskGold', 'bg-iskCream/40', 'text-iskDark');
+                link.classList.add('border-transparent', 'text-gray-600');
+
+                if (linkPath === currentPath && !urlObj.hash) {
+                    link.classList.remove('border-transparent', 'text-gray-600');
+                    link.classList.add('border-iskGold', 'bg-iskCream/40', 'text-iskDark');
+                }
+            });
         }
 
         function checkLiveService() {
@@ -946,16 +962,15 @@
         document.addEventListener("DOMContentLoaded", () => {
             // Cada función va en su propio try/catch: si una falla (por ejemplo,
             // porque radio.js todavía no ha terminado de cargar), las demás
-            // -incluyendo el carrusel- deben seguir funcionando con normalidad.
+            // deben seguir funcionando con normalidad.
             try { checkLiveService(); } catch (e) { console.warn("checkLiveService:", e); }
             try { updateActiveNav(); } catch (e) { console.warn("updateActiveNav:", e); }
             try { if (typeof subscribeRadioMetadata === "function") subscribeRadioMetadata(); } catch (e) { console.warn("subscribeRadioMetadata:", e); }
-
-            // Inicializar carrusel (independiente de lo anterior)
-            try {
-                showSlide(0);
-                if (typeof startCarouselTimer === "function") startCarouselTimer();
-            } catch (e) { console.warn("carrusel:", e); }
+            // NOTA: el carrusel YA NO se inicializa aquí. Se inicia una sola vez,
+            // de forma inmediata, más abajo (ver "Arranque inmediato del carrusel").
+            // Antes se iniciaba aquí Y también en window.onload, y esos dos
+            // temporizadores duplicados se cancelaban entre sí con solo 2 imágenes,
+            // haciendo que pareciera "trabado" hasta tocar una flecha.
         });
 
 
@@ -1244,15 +1259,29 @@
         // ni el resto de la página.
         window.onload = function () {
             try { if (typeof calculateDonationImpact === "function") calculateDonationImpact(); } catch (e) { console.warn("calculateDonationImpact:", e); }
-            try { startCarouselTimer(); } catch (e) { console.warn("startCarouselTimer:", e); }
             try { if (typeof checkYouTubeLiveStatus === "function") checkYouTubeLiveStatus(); } catch (e) { console.warn("checkYouTubeLiveStatus:", e); }
             try { document.getElementById('currentYear').textContent = new Date().getFullYear(); } catch (e) { console.warn("currentYear:", e); }
             try { initVisitorCounter(); } catch (e) { console.warn("initVisitorCounter:", e); }
+            // NOTA: ya NO se llama startCarouselTimer() aquí (ver más abajo).
         }
+
+        // ── Arranque inmediato del carrusel ──────────────────────────────
+        // Este script está ubicado después de las imágenes del carrusel en el
+        // HTML, así que cuando el navegador llega hasta aquí esas imágenes ya
+        // existen en la página: no hace falta esperar ningún evento para
+        // empezar a mostrarlas. Se llama UNA SOLA VEZ (antes se llamaba también
+        // en DOMContentLoaded y en window.onload, y esos dos temporizadores
+        // duplicados se cancelaban entre sí con solo 2 imágenes).
+        try {
+            showSlide(0);
+            startCarouselTimer();
+        } catch (e) { console.warn("carrusel:", e); }
     </script>
 
     <!-- Reproductor de radio compartido (auto-reanuda entre páginas) -->
     <script src="radio.js"></script>
+    <!-- Metadatos de la radio en la notificación del celular (Media Session API) -->
+    <script src="media-session.js"></script>
 </body>
 
 </html>
