@@ -654,6 +654,10 @@
                 <!-- Información eclesiástica, dirección y horarios -->
                 <div
                     class="max-w-xl text-sm md:text-base text-gray-800 italic font-serif leading-relaxed md:text-right">
+                    <p class="not-italic font-sans text-[11px] font-semibold tracking-wide text-gray-500 flex items-center justify-center md:justify-end gap-1.5 mb-2">
+                        <i class="fa-solid fa-users text-iskGold text-[10px]"></i>
+                        <span id="visitorCount">1230</span> visitas
+                    </p>
                     <p>... Si no que en los dias de la voz... Apoc. 10:7</p>
                 </div>
 
@@ -674,8 +678,8 @@
     <div id="login-modal"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 hidden backdrop-blur-sm">
         <div
-            class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0 modal-container">
-            <div class="bg-iskDark p-6 text-white flex justify-between items-center">
+            class="bg-white rounded-2xl w-full max-w-md shadow-2xl transform transition-all duration-300 scale-95 opacity-0 modal-container max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="bg-iskDark p-6 text-white flex justify-between items-center flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <i class="fa-regular fa-user text-iskGold text-xl"></i>
                     <h3 class="font-bold text-lg uppercase tracking-wider">Portal de Miembros</h3>
@@ -685,7 +689,7 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="p-8 space-y-6 text-center">
+            <div class="p-8 space-y-6 text-center overflow-y-auto">
                 <div class="flex justify-center mb-4">
                     <i class="fa-solid fa-person-digging text-5xl text-iskGold opacity-80 animate-bounce"></i>
                 </div>
@@ -709,8 +713,8 @@
     <div id="service-modal"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 hidden backdrop-blur-sm">
         <div
-            class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl transform transition-all duration-300 scale-95 opacity-0 modal-container">
-            <div class="bg-iskDark p-6 text-white flex justify-between items-center">
+            class="bg-white rounded-2xl w-full max-w-lg shadow-2xl transform transition-all duration-300 scale-95 opacity-0 modal-container max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="bg-iskDark p-6 text-white flex justify-between items-center flex-shrink-0">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-circle-info text-iskGold text-xl"></i>
                     <h3 id="serviceModalTitle" class="font-bold text-lg uppercase tracking-wider">Detalles</h3>
@@ -720,7 +724,7 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="p-8 space-y-6">
+            <div class="p-8 space-y-6 overflow-y-auto">
                 <p id="serviceModalDescription" class="text-gray-600 leading-relaxed text-sm md:text-base">
                     Información detallada.
                 </p>
@@ -940,13 +944,18 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            checkLiveService();
-            updateActiveNav();
-            subscribeRadioMetadata();
+            // Cada función va en su propio try/catch: si una falla (por ejemplo,
+            // porque radio.js todavía no ha terminado de cargar), las demás
+            // -incluyendo el carrusel- deben seguir funcionando con normalidad.
+            try { checkLiveService(); } catch (e) { console.warn("checkLiveService:", e); }
+            try { updateActiveNav(); } catch (e) { console.warn("updateActiveNav:", e); }
+            try { if (typeof subscribeRadioMetadata === "function") subscribeRadioMetadata(); } catch (e) { console.warn("subscribeRadioMetadata:", e); }
 
-            // Inicializar carrusel
-            showSlide(0);
-            if (typeof startCarouselTimer === "function") startCarouselTimer();
+            // Inicializar carrusel (independiente de lo anterior)
+            try {
+                showSlide(0);
+                if (typeof startCarouselTimer === "function") startCarouselTimer();
+            } catch (e) { console.warn("carrusel:", e); }
         });
 
 
@@ -960,6 +969,7 @@
 
             if (modal.classList.contains('hidden')) {
                 modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
                 setTimeout(() => {
                     container.classList.remove('scale-95', 'opacity-0');
                     container.classList.add('scale-100', 'opacity-100');
@@ -967,11 +977,86 @@
             } else {
                 container.classList.remove('scale-100', 'opacity-100');
                 container.classList.add('scale-95', 'opacity-0');
+                document.body.classList.remove('overflow-hidden');
                 setTimeout(() => {
                     modal.classList.add('hidden');
                 }, 300);
             }
         }
+        // Contador de Visitantes (pie de página)
+        // Usa una API gratuita (countapi.mileshilliard.com) para que el número se guarde
+        // de verdad y vaya sumando entre todas las personas que entran a la página,
+        // no solo en el navegador de cada quien. Empieza en 1230.
+        function initVisitorCounter() {
+            const countEl = document.getElementById('visitorCount');
+            if (!countEl) return;
+
+            const COUNTER_KEY = 'tlvd_org_visitas_totales';
+            const BASE_VALUE = 1230;
+            const API = 'https://countapi.mileshilliard.com/api/v1';
+
+            function mostrar(valor) {
+                const num = Number(valor);
+                countEl.textContent = isNaN(num) ? BASE_VALUE.toLocaleString('es-ES') : num.toLocaleString('es-ES');
+            }
+
+            // Si ya se contó esta visita en esta pestaña (evita sumar de más al navegar
+            // entre secciones internas de la página), solo mostramos el valor actual.
+            if (sessionStorage.getItem('tlvd_visita_contada')) {
+                fetch(`${API}/get/${COUNTER_KEY}`)
+                    .then(r => r.json())
+                    .then(data => mostrar(data.value))
+                    .catch(() => mostrar(BASE_VALUE));
+                return;
+            }
+
+            fetch(`${API}/get/${COUNTER_KEY}`)
+                .then(r => {
+                    if (!r.ok) throw new Error('clave-no-existe');
+                    return fetch(`${API}/hit/${COUNTER_KEY}`).then(r2 => r2.json());
+                })
+                .catch(() => {
+                    // Primera vez que se usa la clave: se inicializa en 1230 y se cuenta esta visita
+                    return fetch(`${API}/set/${COUNTER_KEY}?value=${BASE_VALUE}`)
+                        .then(() => fetch(`${API}/hit/${COUNTER_KEY}`).then(r => r.json()));
+                })
+                .then(data => {
+                    mostrar(data.value);
+                    sessionStorage.setItem('tlvd_visita_contada', '1');
+                })
+                .catch(() => mostrar(BASE_VALUE));
+        }
+
+        // Apertura y cierre del Modal de Servicios/Detalles (Quiénes Somos, etc.)
+        // Estas funciones no existían antes, por eso el botón "Saber más" no abría nada.
+        function openServiceModal(title, description) {
+            const modal = document.getElementById('service-modal');
+            const container = modal.querySelector('.modal-container');
+            const titleEl = document.getElementById('serviceModalTitle');
+            const descEl = document.getElementById('serviceModalDescription');
+            if (titleEl) titleEl.textContent = title;
+            if (descEl) descEl.innerHTML = description;
+
+            modal.classList.remove('hidden');
+            // Evitar que el fondo se desplace mientras el modal está abierto (mejora en móvil)
+            document.body.classList.add('overflow-hidden');
+            setTimeout(() => {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeServiceModal() {
+            const modal = document.getElementById('service-modal');
+            const container = modal.querySelector('.modal-container');
+            container.classList.remove('scale-100', 'opacity-100');
+            container.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }, 300);
+        }
+
         // Sistema dinámico de Notificaciones Toast
         let toastTimeout;
         function showToast(title, msg, bgColorClass = "bg-emerald-600", iconClass = "fa-circle-check") {
@@ -1154,11 +1239,15 @@
         });
 
         // Inicializar el carrusel, impacto de donación, chequeo de streaming y metadatos de radio
+        // Cada llamada va aislada en su propio try/catch para que, si una función externa
+        // (por ejemplo de radio.js) falla, no impida que arranque el carrusel automático
+        // ni el resto de la página.
         window.onload = function () {
-            calculateDonationImpact();
-            startCarouselTimer();
-            checkYouTubeLiveStatus();
-            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            try { if (typeof calculateDonationImpact === "function") calculateDonationImpact(); } catch (e) { console.warn("calculateDonationImpact:", e); }
+            try { startCarouselTimer(); } catch (e) { console.warn("startCarouselTimer:", e); }
+            try { if (typeof checkYouTubeLiveStatus === "function") checkYouTubeLiveStatus(); } catch (e) { console.warn("checkYouTubeLiveStatus:", e); }
+            try { document.getElementById('currentYear').textContent = new Date().getFullYear(); } catch (e) { console.warn("currentYear:", e); }
+            try { initVisitorCounter(); } catch (e) { console.warn("initVisitorCounter:", e); }
         }
     </script>
 
