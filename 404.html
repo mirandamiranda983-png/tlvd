@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirigiendo...</title>
+  <script>
+    // Obtiene la ruta actual que dio error
+    const path = window.location.pathname;
+    const lowerPath = path.toLowerCase();
+
+    // Si la ruta contenía mayúsculas, redirige a la versión en minúsculas
+    if (path !== lowerPath) {
+      window.location.replace(lowerPath + window.location.search + window.location.hash);
+    } else {
+      // Si realmente la página no existe, puedes mostrar un mensaje de error real o rediroger al inicio
+      document.write("<h1>404 - Página no encontrada</h1><p>La página que buscas no existe.</p>");
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>
