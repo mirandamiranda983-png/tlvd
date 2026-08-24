@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Culto de Jóvenes · Tabernáculo La Voz de Dios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c1f2b;
+    --ink-soft:#4b4f5e;
+    --paper:#f2ead9;
+    --card:#fffdf7;
+    --ember:#c1571e;
+    --ember-dark:#973f13;
+    --gold:#d6a94a;
+    --teal:#2b4a45;
+    --line: rgba(28,31,43,0.14);
+    --shadow: 0 24px 60px -24px rgba(28,20,10,0.35);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(193,87,30,0.10), transparent 45%),
+      radial-gradient(circle at 92% 88%, rgba(43,74,69,0.12), transparent 40%),
+      var(--paper);
+    color:var(--ink);
+    font-family:"Inter", sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    padding:28px 16px 60px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  .page{max-width:1040px;margin:0 auto;}
+
+  /* ---------- MASTHEAD ---------- */
+  .masthead{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:30px;
+    opacity:0;
+    animation: rise .7s ease forwards;
+  }
+  .masthead img{
+    height:64px;
+    width:auto;
+    object-fit:contain;
+  }
+
+  /* ---------- TICKET ---------- */
+  .ticket{
+    background:var(--card);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    display:flex;
+    overflow:hidden;
+    position:relative;
+    opacity:0;
+    animation: rise .8s ease .1s forwards;
+    border:1px solid var(--line);
+  }
+  .ticket-info{
+    flex:1.15;
+    padding:44px 40px 40px;
+    min-width:0;
+  }
+  .ticket-poster{
+    flex:0.85;
+    padding:36px 36px 36px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    background:linear-gradient(180deg, rgba(43,74,69,0.04), transparent 30%);
+  }
+
+  .perforation{
+    width:26px;
+    flex:none;
+    position:relative;
+    background-image: radial-gradient(circle, var(--paper) 7px, transparent 7.3px);
+    background-size: 100% 26px;
+    background-position: center 0;
+    background-repeat: repeat-y;
+  }
+  .perforation::before{
+    content:"";
+    position:absolute;
+    top:13px; bottom:13px; left:50%;
+    border-left:2px dashed var(--line);
+  }
+
+  .eyebrow{
+    font-family:"Space Mono", monospace;
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ember);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:"Fraunces", serif;
+    font-weight:700;
+    font-size:clamp(34px, 4.6vw, 50px);
+    line-height:1.02;
+    margin:0 0 26px;
+    letter-spacing:-0.01em;
+  }
+
+  .meta-row{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .meta-card{
+    flex:1;
+    min-width:150px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+  }
+  .meta-card .ic{
+    flex:none;
+    width:30px;height:30px;
+    border-radius:9px;
+    background:var(--card);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ember);
+    border:1px solid var(--line);
+  }
+  .meta-card .label{
+    font-family:"Space Mono", monospace;
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:2px;
+  }
+  .meta-card .value{font-weight:600; font-size:14.5px;}
+  .meta-card .sub{font-size:12.5px; color:var(--ink-soft); margin-top:1px;}
+  .meta-card a{color:var(--ember-dark); text-decoration:none; border-bottom:1px solid currentColor;}
+
+  .section-label{
+    font-family:"Space Mono", monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin:26px 0 10px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+  }
+  .section-label:first-of-type{margin-top:22px;}
+  p.description{
+    font-size:15.5px;
+    line-height:1.65;
+    color:#33384a;
+    margin:0;
+  }
+
+  .people-row{display:flex; gap:14px; flex-wrap:wrap;}
+  .person-card{flex:1; min-width:160px;}
+  .person-card .label{
+    font-family:"Space Mono", monospace;
+    font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-soft); margin-bottom:6px;
+  }
+  .person-card .value{font-weight:600; font-size:14.5px;}
+  .person-card a{color:var(--ember-dark); text-decoration:none; font-size:13.5px; word-break:break-all;}
+
+  .map-frame{
+    margin-top:12px;
+    border-radius:14px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    height:200px;
+    position:relative;
+  }
+  .map-frame iframe{width:100%;height:100%;border:0;display:block;}
+  .map-frame .pin-label{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -132%);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--ink);
+    color:#fdf7ec;
+    padding:6px 11px 6px 9px;
+    border-radius:999px;
+    font-family:"Inter", sans-serif;
+    font-weight:600;
+    font-size:11.5px;
+    white-space:nowrap;
+    box-shadow:0 8px 18px -6px rgba(0,0,0,0.45);
+    pointer-events:none;
+  }
+  .map-frame .pin-label::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:100%;
+    transform:translateX(-50%);
+    border:5px solid transparent;
+    border-top-color:var(--ink);
+  }
+  .map-frame .pin-label svg{width:13px;height:13px;flex:none;color:var(--ember);}
+  .map-link{
+    display:inline-block;
+    margin-top:8px;
+    font-family:"Space Mono", monospace;
+    font-size:11.5px;
+    letter-spacing:.04em;
+    color:var(--ember-dark);
+    text-decoration:none;
+    border-bottom:1px dashed currentColor;
+  }
+
+  /* ---------- POSTER SIDE ---------- */
+  .poster-frame{
+    position:relative;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 18px 40px -18px rgba(0,0,0,0.45);
+    border:1px solid var(--line);
+    background:var(--ink);
+  }
+  .poster-frame img{width:100%; display:block;}
+  .poster-frame .tag{
+    position:absolute; top:12px; left:12px;
+    font-family:"Space Mono", monospace;
+    font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    background:rgba(255,253,247,0.92);
+    color:var(--ink);
+    padding:5px 9px;
+    border-radius:999px;
+  }
+
+  /* countdown */
+  .countdown{
+    display:flex;
+    gap:8px;
+  }
+  .cd-cell{
+    flex:1;
+    background:var(--paper);
+    border:1px dashed var(--line);
+    border-radius:12px;
+    padding:10px 4px 8px;
+    text-align:center;
+  }
+  .cd-cell .num{
+    font-family:"Space Mono", monospace;
+    font-weight:700;
+    font-size:22px;
+    color:var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .cd-cell .num.pulse{color:var(--ember);}
+  .cd-cell .unit{
+    font-size:9.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+
+  /* action buttons */
+  .action-row{display:flex; gap:10px;}
+  .btn{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    padding:12px 10px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--card);
+    font-family:"Inter", sans-serif;
+    font-weight:600;
+    font-size:13px;
+    color:var(--ink);
+    cursor:pointer;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+    text-decoration:none;
+  }
+  .btn:hover{transform:translateY(-2px); box-shadow:0 10px 22px -12px rgba(0,0,0,0.35);}
+  .btn:focus-visible{outline:2px solid var(--ember); outline-offset:2px;}
+  .btn svg{width:16px;height:16px;flex:none;}
+
+  .cal-wrap{position:relative; flex:1;}
+  .cal-menu{
+    position:absolute;
+    bottom:calc(100% + 8px);
+    left:0; right:0;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    padding:6px;
+    display:none;
+    z-index:5;
+  }
+  .cal-menu.open{display:block;}
+  .cal-menu button, .cal-menu a{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:0;
+    padding:9px 10px;
+    border-radius:8px;
+    font-family:"Inter", sans-serif;
+    font-size:13px;
+    color:var(--ink);
+    cursor:pointer;
+    text-decoration:none;
+  }
+  .cal-menu button:hover, .cal-menu a:hover{background:var(--paper);}
+
+  .confirm-btn{
+    width:100%;
+    border:none;
+    border-radius:14px;
+    padding:16px 14px;
+    background:linear-gradient(135deg, var(--ember), var(--ember-dark));
+    color:#fffaf2;
+    font-family:"Fraunces", serif;
+    font-weight:600;
+    font-size:17px;
+    letter-spacing:.01em;
+    cursor:pointer;
+    box-shadow:0 14px 26px -12px rgba(151,63,19,0.55);
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+    position:relative;
+  }
+  .confirm-btn:hover{transform:translateY(-2px); box-shadow:0 18px 30px -12px rgba(151,63,19,0.6);}
+  .confirm-btn:active{transform:translateY(0);}
+  .confirm-btn.done{
+    background:linear-gradient(135deg, var(--teal), #1d332f);
+    box-shadow:0 14px 26px -12px rgba(29,51,47,0.55);
+  }
+  .confirm-btn:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
+
+  .confirm-panel{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+    display:none;
+    flex-direction:column;
+    gap:10px;
+  }
+  .confirm-panel.open{display:flex;}
+  .confirm-panel label{
+    font-family:"Space Mono", monospace;
+    font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .confirm-panel input{
+    width:100%;
+    padding:10px 12px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:var(--card);
+    font-family:"Inter", sans-serif;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .confirm-panel input:focus-visible{outline:2px solid var(--ember); outline-offset:1px;}
+  .confirm-panel small{color:var(--ink-soft); font-size:11.5px; line-height:1.4;}
+  .confirm-panel .send-btn{
+    align-self:flex-start;
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    padding:9px 16px;
+    border-radius:9px;
+    font-family:"Inter", sans-serif;
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+  }
+
+  .stamp{
+    display:none;
+    align-items:center;
+    gap:8px;
+    font-family:"Space Mono", monospace;
+    font-size:12px;
+    color:var(--teal);
+    letter-spacing:.03em;
+  }
+  .stamp.show{display:flex; animation: pop .4s ease;}
+  .stamp .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);}
+
+  .toast{
+    position:fixed;
+    left:50%; bottom:26px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:#fdf7ec;
+    padding:11px 18px;
+    border-radius:999px;
+    font-family:"Inter", sans-serif;
+    font-size:13.5px;
+    box-shadow:0 12px 30px -10px rgba(0,0,0,0.5);
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .25s ease, transform .25s ease;
+    z-index:50;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  footer{
+    text-align:center;
+    margin-top:24px;
+    font-family:"Inter", sans-serif;
+    font-size:12.5px;
+    letter-spacing:.01em;
+    color:var(--ink-soft);
+    opacity:0;
+    animation: rise .8s ease .2s forwards;
+  }
+  footer a{
+    color:var(--ink);
+    font-weight:700;
+    text-decoration:none;
+    border-bottom:1px solid var(--line);
+  }
+  footer a:hover{border-bottom-color:var(--ember);}
+
+  @keyframes rise{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  @keyframes pop{
+    from{opacity:0; transform:scale(.85);}
+    to{opacity:1; transform:scale(1);}
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 780px){
+    .ticket{flex-direction:column;}
+    .ticket-poster{order:-1; padding:26px 22px 22px;}
+    .ticket-info{padding:28px 22px 34px; order:1;}
+    .perforation{
+      width:100%; height:26px; flex:none;
+      background-image: radial-gradient(circle, var(--paper) 7px, transparent 7.3px);
+      background-size: 26px 100%;
+      background-position: 0 center;
+      background-repeat: repeat-x;
+    }
+    .perforation::before{
+      top:50%; bottom:auto; left:13px; right:13px;
+      border-left:0; border-top:2px dashed var(--line);
+      transform:translateY(-1px);
+    }
+    h1{font-size:32px;}
+    .cd-cell .num{font-size:19px;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="masthead">
+    <img src="https://lh3.googleusercontent.com/d/1nn9ImcQDkF63mrEWBCi7t2sJTviiWOQD=w400" alt="Logo Tabernáculo La Voz de Dios">
+  </div>
+
+  <div class="ticket">
+    <section class="ticket-info">
+      <div class="eyebrow">Invitación · Jóvenes</div>
+      <h1>Culto de<br>Jóvenes</h1>
+
+      <div class="meta-row">
+        <div class="meta-card">
+          <div class="ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+          </div>
+          <div>
+            <div class="label">Fecha</div>
+            <div class="value">Sáb, 05 sep 2026</div>
+          </div>
+        </div>
+        <div class="meta-card">
+          <div class="ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          </div>
+          <div>
+            <div class="label">Hora</div>
+            <div class="value">2:00 pm</div>
+            <div class="sub">GMT-6</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="meta-card" style="margin-bottom:4px;">
+        <div class="ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div>
+          <div class="label">Ubicación</div>
+          <div class="value">Tabernáculo La Voz de Dios</div>
+          <div class="sub">2C Lote 7, Col. Kennedy, Mejicanos, San Salvador</div>
+          <a href="https://maps.app.goo.gl/rxcfTrD3WUpMuXLM6" target="_blank" rel="noopener">Abrir en Google Maps ↗</a>
+        </div>
+      </div>
+
+      <div class="section-label">Acerca del evento</div>
+      <p class="description">Te invitamos a ser parte de un espacio diseñado especialmente para nosotros: un encuentro para conectar con Dios, renovar las fuerzas y vivir momentos inolvidables entre amigos.</p>
+
+      <div class="section-label">Organiza y contacto</div>
+      <div class="people-row">
+        <div class="person-card">
+          <div class="label">Organizado por</div>
+          <div class="value">Tabernáculo La Voz de Dios</div>
+        </div>
+        <div class="person-card">
+          <div class="label">Contacto</div>
+          <a href="mailto:info@tlvd.org">info@tlvd.org</a>
+        </div>
+      </div>
+
+      <div class="section-label">Cómo llegar</div>
+      <div class="map-frame">
+        <iframe src="https://www.google.com/maps?q=13.731224,-89.1922588&z=16&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa de ubicación del evento"></iframe>
+        <div class="pin-label" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/></svg>
+          Tabernáculo La Voz de Dios
+        </div>
+      </div>
+      <a class="map-link" href="https://maps.app.goo.gl/rxcfTrD3WUpMuXLM6" target="_blank" rel="noopener">Ver ruta y direcciones →</a>
+    </section>
+
+    <div class="perforation" aria-hidden="true"></div>
+
+    <section class="ticket-poster">
+      <div class="poster-frame">
+        <span class="tag">Sáb 05 sep</span>
+        <img src="https://lh3.googleusercontent.com/d/1F3tA1p_nk_2WGro9iKDRFh0e9eQLA6rN=w900" alt="Afiche Culto de Jóvenes">
+      </div>
+
+      <div class="countdown" id="countdown">
+        <div class="cd-cell"><div class="num" id="cd-days">00</div><div class="unit">días</div></div>
+        <div class="cd-cell"><div class="num" id="cd-hours">00</div><div class="unit">horas</div></div>
+        <div class="cd-cell"><div class="num" id="cd-mins">00</div><div class="unit">min</div></div>
+        <div class="cd-cell"><div class="num pulse" id="cd-secs">00</div><div class="unit">seg</div></div>
+      </div>
+
+      <div class="action-row">
+        <div class="cal-wrap">
+          <button class="btn" id="calBtn" aria-haspopup="true" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="M9 15l2 2 4-4"/></svg>
+            Calendario
+          </button>
+          <div class="cal-menu" id="calMenu">
+            <a id="gcalLink" href="#" target="_blank" rel="noopener">Añadir a Google Calendar</a>
+            <button id="icsBtn" type="button">Descargar .ics (Apple / Outlook)</button>
+          </div>
+        </div>
+        <button class="btn" id="shareBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-3.9M8.6 13.5l6.8 3.9"/></svg>
+          Compartir
+        </button>
+      </div>
+
+      <button class="confirm-btn" id="confirmBtn">Confirmar asistencia</button>
+
+      <div class="confirm-panel" id="confirmPanel">
+        <div>
+          <label for="attendeeName">Tu nombre</label>
+          <input type="text" id="attendeeName" placeholder="Escribe tu nombre">
+        </div>
+        <small>Al confirmar se abrirá tu app de correo con un mensaje ya listo para Tabernáculo La Voz de Dios.</small>
+        <button class="send-btn" id="sendConfirm" type="button">Enviar confirmación</button>
+      </div>
+
+      <div class="stamp" id="stamp"><span class="dot"></span> ¡Asistencia confirmada! Nos vemos ahí.</div>
+    </section>
+  </div>
+
+  <footer><a href="https://tlvd.org" target="_blank" rel="noopener">Tabernáculo La Voz De Dios</a> © 2026 - Todos los derechos reservados | Pastor Iván Córdova</footer>
+</div>
+
+<div class="toast" id="toast">Enlace copiado</div>
+
+<script>
+  // ---------- Countdown ----------
+  const target = new Date("2026-09-05T14:00:00-06:00").getTime();
+  const els = {
+    d: document.getElementById('cd-days'),
+    h: document.getElementById('cd-hours'),
+    m: document.getElementById('cd-mins'),
+    s: document.getElementById('cd-secs'),
+  };
+  function pad(n){ return String(Math.max(n,0)).padStart(2,'0'); }
+  function tick(){
+    const now = Date.now();
+    let diff = target - now;
+    if(diff < 0) diff = 0;
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    els.d.textContent = pad(days);
+    els.h.textContent = pad(hours);
+    els.m.textContent = pad(mins);
+    els.s.textContent = pad(secs);
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // ---------- Calendar links ----------
+  const evtTitle = "Culto de Jóvenes";
+  const evtDetails = "Un encuentro para conectar con Dios, renovar fuerzas y vivir momentos inolvidables entre amigos. Organiza: Tabernáculo La Voz de Dios.";
+  const evtLocation = "Tabernáculo La Voz de Dios, 2C Lote 7, Col. Kennedy, Mejicanos, San Salvador";
+  const startUTC = "20260905T200000Z"; // 2:00pm GMT-6
+  const endUTC = "20260905T230000Z";   // 5:00pm GMT-6
+
+  const gcalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+    + "&text=" + encodeURIComponent(evtTitle)
+    + "&dates=" + startUTC + "/" + endUTC
+    + "&details=" + encodeURIComponent(evtDetails)
+    + "&location=" + encodeURIComponent(evtLocation)
+    + "&ctz=America/El_Salvador";
+  document.getElementById('gcalLink').href = gcalUrl;
+
+  const calBtn = document.getElementById('calBtn');
+  const calMenu = document.getElementById('calMenu');
+  calBtn.addEventListener('click', () => {
+    const open = calMenu.classList.toggle('open');
+    calBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', (e) => {
+    if(!calBtn.contains(e.target) && !calMenu.contains(e.target)){
+      calMenu.classList.remove('open');
+      calBtn.setAttribute('aria-expanded','false');
+    }
+  });
+
+  document.getElementById('icsBtn').addEventListener('click', () => {
+    const ics = [
+      "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Culto de Jovenes//ES",
+      "BEGIN:VEVENT",
+      "UID:" + Date.now() + "@tlvd.org",
+      "DTSTAMP:" + startUTC,
+      "DTSTART:" + startUTC,
+      "DTEND:" + endUTC,
+      "SUMMARY:" + evtTitle,
+      "DESCRIPTION:" + evtDetails,
+      "LOCATION:" + evtLocation,
+      "END:VEVENT","END:VCALENDAR"
+    ].join("\r\n");
+    const blob = new Blob([ics], {type:"text/calendar"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = "culto-de-jovenes.ics";
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    calMenu.classList.remove('open');
+    showToast("Evento descargado (.ics)");
+  });
+
+  // ---------- Share ----------
+  const shareBtn = document.getElementById('shareBtn');
+  shareBtn.addEventListener('click', async () => {
+    const shareData = {
+      title: evtTitle,
+      text: "Te invito al Culto de Jóvenes, sábado 05 de septiembre, 2:00pm. ¡Te esperamos!",
+      url: window.location.href
+    };
+    if(navigator.share){
+      try{ await navigator.share(shareData); } catch(e){ /* cancelado */ }
+    } else {
+      try{
+        await navigator.clipboard.writeText(shareData.url);
+        showToast("Enlace copiado al portapapeles");
+      }catch(e){
+        showToast("No se pudo copiar el enlace");
+      }
+    }
+  });
+
+  // ---------- Confirm attendance ----------
+  const confirmBtn = document.getElementById('confirmBtn');
+  const confirmPanel = document.getElementById('confirmPanel');
+  const stamp = document.getElementById('stamp');
+  let confirmed = false;
+
+  confirmBtn.addEventListener('click', () => {
+    if(confirmed) return;
+    confirmPanel.classList.toggle('open');
+  });
+
+  document.getElementById('sendConfirm').addEventListener('click', () => {
+    const name = document.getElementById('attendeeName').value.trim() || "Un joven de la iglesia";
+    const subject = "Confirmación de asistencia · Culto de Jóvenes";
+    const body = `Hola Tabernáculo La Voz de Dios,%0D%0A%0D%0A${encodeURIComponent(name)} confirma asistencia al Culto de Jóvenes del sábado 05 de septiembre, 2:00pm.%0D%0A%0D%0A¡Nos vemos ahí!`;
+    window.location.href = `mailto:info@tlvd.org?subject=${encodeURIComponent(subject)}&body=${body}`;
+
+    confirmed = true;
+    confirmPanel.classList.remove('open');
+    confirmBtn.textContent = "Asistencia confirmada ✓";
+    confirmBtn.classList.add('done');
+    stamp.classList.add('show');
+  });
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._tm);
+    showToast._tm = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+</script>
+</body>
+</html>
