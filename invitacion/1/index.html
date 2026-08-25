@@ -74,7 +74,12 @@ Eclesiastés 12:1">
     background:var(--card);
     border-radius:28px;
     box-shadow:var(--shadow);
-    display:flex;
+    display:grid;
+    grid-template-columns: 1.15fr auto 0.85fr;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "info perf poster"
+      "map  perf poster";
     overflow:hidden;
     position:relative;
     opacity:0;
@@ -82,12 +87,17 @@ Eclesiastés 12:1">
     border:1px solid var(--line);
   }
   .ticket-info{
-    flex:1.15;
-    padding:44px 40px 40px;
+    grid-area: info;
+    padding:44px 40px 20px;
+    min-width:0;
+  }
+  .ticket-map{
+    grid-area: map;
+    padding:0 40px 40px;
     min-width:0;
   }
   .ticket-poster{
-    flex:0.85;
+    grid-area: poster;
     padding:36px 36px 36px;
     display:flex;
     flex-direction:column;
@@ -96,8 +106,8 @@ Eclesiastés 12:1">
   }
 
   .perforation{
+    grid-area: perf;
     width:26px;
-    flex:none;
     position:relative;
     background-image: radial-gradient(circle, var(--paper) 7px, transparent 7.3px);
     background-size: 100% 26px;
@@ -469,11 +479,20 @@ Eclesiastés 12:1">
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width: 780px){
-    .ticket{flex-direction:column;}
-    .ticket-poster{order:-1; padding:26px 22px 22px;}
-    .ticket-info{padding:28px 22px 34px; order:1;}
+    .ticket{
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto auto;
+      grid-template-areas:
+        "info"
+        "perf"
+        "poster"
+        "map";
+    }
+    .ticket-poster{padding:26px 22px 22px;}
+    .ticket-info{padding:28px 22px 6px;}
+    .ticket-map{padding:0 22px 30px;}
     .perforation{
-      width:100%; height:26px; flex:none;
+      width:100%; height:26px;
       background-image: radial-gradient(circle, var(--paper) 7px, transparent 7.3px);
       background-size: 26px 100%;
       background-position: 0 center;
@@ -550,15 +569,6 @@ Eclesiastés 12:1">
         </div>
       </div>
 
-      <div class="section-label">Cómo llegar</div>
-      <div class="map-frame">
-        <iframe src="https://www.google.com/maps?q=13.731224,-89.1922588&z=16&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa de ubicación del evento"></iframe>
-        <div class="pin-label" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/></svg>
-          Tabernáculo La Voz de Dios
-        </div>
-      </div>
-      <a class="map-link" href="https://maps.app.goo.gl/rxcfTrD3WUpMuXLM6" target="_blank" rel="noopener">Ver ruta y direcciones →</a>
     </section>
 
     <div class="perforation" aria-hidden="true"></div>
@@ -605,6 +615,18 @@ Eclesiastés 12:1">
       </div>
 
       <div class="stamp" id="stamp"><span class="dot"></span> ¡Asistencia confirmada! Nos vemos ahí.</div>
+    </section>
+
+    <section class="ticket-map">
+      <div class="section-label">Cómo llegar</div>
+      <div class="map-frame">
+        <iframe src="https://www.google.com/maps?q=13.731224,-89.1922588&z=16&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa de ubicación del evento"></iframe>
+        <div class="pin-label" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/></svg>
+          Tabernáculo La Voz de Dios
+        </div>
+      </div>
+      <a class="map-link" href="https://maps.app.goo.gl/rxcfTrD3WUpMuXLM6" target="_blank" rel="noopener">Ver ruta y direcciones →</a>
     </section>
   </div>
 
