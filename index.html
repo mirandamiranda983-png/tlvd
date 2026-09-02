@@ -207,7 +207,7 @@
     <header class="w-full">
         <!-- Barra de Utilidad Superior con Reproductor de Radio (Inspirada en el estilo original de image_c2d2a2.jpg) -->
         <div id="topbar-fixed"
-            class="bg-iskDark text-gray-300 text-xs md:text-sm py-2 px-4 border-b border-gray-800 fixed top-0 left-0 right-0 z-50 shadow-sm">
+            class="bg-iskDark text-gray-300 text-xs md:text-sm py-2 px-4 border-b border-gray-800 md:fixed md:top-0 md:left-0 md:right-0 z-50 shadow-sm">
             <div
                 class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
 
@@ -1002,103 +1002,10 @@ Si ya has creído o deseas conocer más profundamente el Evangelio, aquí encont
                 }, 300);
             }
         }
-        // Contador de Visitantes (pie de página)
-        // Usa una API gratuita (countapi.mileshilliard.com) para que el número se guarde
-        // de verdad y vaya sumando entre todas las personas que entran a la página,
-        // no solo en el navegador de cada quien. Empieza en 1230.
-        //
-        // IMPORTANTE (corrección): antes, si la consulta al servicio fallaba por
-        // CUALQUIER motivo (caída momentánea, límite de peticiones, red lenta, etc.),
-        // el código asumía "la clave no existe todavía" y reiniciaba el contador a
-        // 1230. Eso es lo que provocó que el número bajara de 1300 a 1230. Ahora:
-        //   1) Solo se reinicia a 1230 si el servidor confirma de verdad (404) que
-        //      la clave nunca se ha creado, no ante cualquier error de red.
-        //   2) Se guarda el último valor visto en localStorage (persiste entre
-        //      visitas y pestañas) como respaldo, y el número mostrado nunca baja
-        //      de ese valor aunque el servicio falle momentáneamente.
-        function initVisitorCounter() {
-            const countEl = document.getElementById('visitorCount');
-            if (!countEl) return;
-
-            const COUNTER_KEY = 'tlvd_org_visitas_totales';
-            const BASE_VALUE = 1230;
-            const API = 'https://countapi.mileshilliard.com/api/v1';
-            const LOCAL_CACHE_KEY = 'tlvd_visitas_cache_local';
-            const INIT_FLAG_KEY = 'tlvd_contador_ya_inicializado';
-
-            function getCache() {
-                const v = Number(localStorage.getItem(LOCAL_CACHE_KEY));
-                return isNaN(v) ? BASE_VALUE : v;
-            }
-
-            // Muestra un valor, pero nunca por debajo del último que ya se vio,
-            // y actualiza la caché local con el nuevo máximo.
-            function mostrar(valor) {
-                const num = Number(valor);
-                const seguro = isNaN(num) ? getCache() : Math.max(num, getCache());
-                countEl.textContent = seguro.toLocaleString('es-ES');
-                localStorage.setItem(LOCAL_CACHE_KEY, String(seguro));
-            }
-
-            // Mostramos de inmediato el último valor conocido para que nunca
-            // se vea en blanco ni "baje" mientras responde el servidor.
-            mostrar(getCache());
-
-            function contarVisita() {
-                fetch(`${API}/hit/${COUNTER_KEY}`)
-                    .then(r => r.json())
-                    .then(data => mostrar(data.value))
-                    .catch(() => { /* se queda con el valor en caché, nunca se reinicia */ });
-            }
-
-            function soloConsultar() {
-                fetch(`${API}/get/${COUNTER_KEY}`)
-                    .then(r => {
-                        if (!r.ok) throw new Error('sin-datos');
-                        return r.json();
-                    })
-                    .then(data => mostrar(data.value))
-                    .catch(() => { /* se queda con el valor en caché */ });
-            }
-
-            // Si ya se contó esta visita en esta pestaña (evita sumar de más al navegar
-            // entre secciones internas de la página), solo mostramos el valor actual.
-            if (sessionStorage.getItem('tlvd_visita_contada')) {
-                soloConsultar();
-                return;
-            }
-
-            // Si este navegador nunca ha confirmado que la clave existe en el
-            // servidor, lo verificamos primero antes de decidir si hay que crearla.
-            if (!localStorage.getItem(INIT_FLAG_KEY)) {
-                fetch(`${API}/get/${COUNTER_KEY}`)
-                    .then(r => {
-                        if (!r.ok) throw new Error('clave-no-existe');
-                        return r.json();
-                    })
-                    .then(data => {
-                        mostrar(data.value);
-                        localStorage.setItem(INIT_FLAG_KEY, '1');
-                        contarVisita();
-                        sessionStorage.setItem('tlvd_visita_contada', '1');
-                    })
-                    .catch(() => {
-                        // Solo entra aquí si el servidor confirmó (404) que la clave
-                        // de verdad no existe todavía: es la primerísima vez que se usa.
-                        fetch(`${API}/set/${COUNTER_KEY}?value=${BASE_VALUE}`)
-                            .then(() => {
-                                localStorage.setItem(INIT_FLAG_KEY, '1');
-                                contarVisita();
-                                sessionStorage.setItem('tlvd_visita_contada', '1');
-                            })
-                            .catch(() => { /* red caída: se queda con el valor en caché */ });
-                    });
-                return;
-            }
-
-            contarVisita();
-            sessionStorage.setItem('tlvd_visita_contada', '1');
-        }
+        // NOTA: el contador de visitas ahora se maneja con Firebase Firestore,
+        // en un bloque <script type="module"> aparte al final de la página
+        // (busca "Contador de Visitantes con Firebase"), porque el SDK de
+        // Firebase se carga como módulo ES. Ya no usa countapi.
 
         // Ajusta el espaciador debajo de la franja fija superior para que el
         // menú/logo nunca queden tapados. Se recalcula al cargar y al cambiar
@@ -1108,7 +1015,11 @@ Si ya has creído o deseas conocer más profundamente el Evangelio, aquí encont
             const bar = document.getElementById('topbar-fixed');
             const spacer = document.getElementById('topbar-spacer');
             if (!bar || !spacer) return;
-            spacer.style.height = bar.offsetHeight + 'px';
+            // La franja solo es "fixed" en escritorio (md: 768px en adelante,
+            // ver clase md:fixed). En celular es parte normal del flujo, así
+            // que no necesita espaciador y no se queda pegada arriba.
+            const esEscritorio = window.matchMedia('(min-width: 768px)').matches;
+            spacer.style.height = esEscritorio ? bar.offsetHeight + 'px' : '0px';
         }
         window.addEventListener('resize', ajustarEspaciadorTopbar);
         window.addEventListener('load', ajustarEspaciadorTopbar);
@@ -1332,7 +1243,6 @@ Si ya has creído o deseas conocer más profundamente el Evangelio, aquí encont
             try { if (typeof calculateDonationImpact === "function") calculateDonationImpact(); } catch (e) { console.warn("calculateDonationImpact:", e); }
             try { if (typeof checkYouTubeLiveStatus === "function") checkYouTubeLiveStatus(); } catch (e) { console.warn("checkYouTubeLiveStatus:", e); }
             try { document.getElementById('currentYear').textContent = new Date().getFullYear(); } catch (e) { console.warn("currentYear:", e); }
-            try { initVisitorCounter(); } catch (e) { console.warn("initVisitorCounter:", e); }
             try { ajustarEspaciadorTopbar(); } catch (e) { console.warn("ajustarEspaciadorTopbar:", e); }
             // NOTA: ya NO se llama startCarouselTimer() aquí (ver más abajo).
         }
@@ -1354,6 +1264,103 @@ Si ya has creído o deseas conocer más profundamente el Evangelio, aquí encont
     <script src="radio.js"></script>
     <!-- Metadatos de la radio en la notificación del celular (Media Session API) -->
     <script src="media-session.js"></script>
+    <!-- ===================================================================
+         Contador de Visitantes con Firebase (Firestore)
+         Reemplaza el servicio gratuito countapi.mileshilliard.com por tu
+         propia base de datos en Firebase. Guarda el total en el documento
+         stats/visitas (campo "total"), sumando 1 de forma atómica en cada
+         visita nueva (una vez por pestaña, igual que antes).
+         Empieza en 1301 si el documento todavía no existe.
+
+         IMPORTANTE - hay que hacer 2 cosas en la consola de Firebase para
+         que esto funcione (ver instrucciones que te doy en el chat):
+           1) Crear la base de datos Firestore en el proyecto (si no existe).
+           2) Configurar las reglas de seguridad para permitir leer/escribir
+              el documento stats/visitas.
+    =================================================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import {
+            getFirestore, doc, getDoc, runTransaction
+        } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCS4QGSz_ZVBIrevOLT7Ad6DXVLufKxLmk",
+            authDomain: "tlvd-6cf32.firebaseapp.com",
+            projectId: "tlvd-6cf32",
+            storageBucket: "tlvd-6cf32.firebasestorage.app",
+            messagingSenderId: "249745100905",
+            appId: "1:249745100905:web:f4d0905eed777ed3f6d2f8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const COUNTER_REF = doc(db, "stats", "visitas");
+        const BASE_VALUE = 1301; // si el contador nunca se ha creado, arranca aquí
+        const LOCAL_CACHE_KEY = "tlvd_visitas_cache_local";
+
+        function getCache() {
+            const v = Number(localStorage.getItem(LOCAL_CACHE_KEY));
+            return isNaN(v) ? BASE_VALUE : v;
+        }
+
+        // Muestra un valor, pero nunca por debajo del último que ya se vio en
+        // este navegador, y actualiza la caché local con el nuevo máximo.
+        function mostrar(valor, countEl) {
+            const num = Number(valor);
+            const seguro = isNaN(num) ? getCache() : Math.max(num, getCache());
+            countEl.textContent = seguro.toLocaleString('es-ES');
+            localStorage.setItem(LOCAL_CACHE_KEY, String(seguro));
+        }
+
+        async function initVisitorCounterFirebase() {
+            const countEl = document.getElementById('visitorCount');
+            if (!countEl) return;
+
+            // Mostramos de inmediato el último valor conocido para que nunca
+            // se vea en blanco ni "baje" mientras responde el servidor.
+            mostrar(getCache(), countEl);
+
+            try {
+                if (sessionStorage.getItem('tlvd_visita_contada')) {
+                    // Ya se contó esta visita en esta pestaña (navegación interna):
+                    // solo consultamos el total actual, no sumamos de nuevo.
+                    const snap = await getDoc(COUNTER_REF);
+                    if (snap.exists()) mostrar(snap.data().total, countEl);
+                    return;
+                }
+
+                // Suma 1 de forma atómica (segura aunque entren varias personas
+                // al mismo tiempo). Si el documento no existe todavía, se crea
+                // en BASE_VALUE en vez de sumarle 1 a algo que no existía.
+                const nuevoTotal = await runTransaction(db, async (tx) => {
+                    const snap = await tx.get(COUNTER_REF);
+                    if (!snap.exists()) {
+                        tx.set(COUNTER_REF, { total: BASE_VALUE });
+                        return BASE_VALUE;
+                    }
+                    const actual = Number(snap.data().total) || BASE_VALUE;
+                    const nuevo = actual + 1;
+                    tx.update(COUNTER_REF, { total: nuevo });
+                    return nuevo;
+                });
+
+                mostrar(nuevoTotal, countEl);
+                sessionStorage.setItem('tlvd_visita_contada', '1');
+            } catch (e) {
+                // Si falla (sin internet, reglas de seguridad, etc.) se queda
+                // con el último valor visto en caché, mostrado arriba. Nunca
+                // se reinicia el número.
+                console.warn('Contador de visitas (Firebase):', e);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initVisitorCounterFirebase);
+        } else {
+            initVisitorCounterFirebase();
+        }
+    </script>
 </body>
 
 </html>
