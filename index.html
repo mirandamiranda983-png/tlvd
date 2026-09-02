@@ -206,8 +206,8 @@
 
     <header class="w-full">
         <!-- Barra de Utilidad Superior con Reproductor de Radio (Inspirada en el estilo original de image_c2d2a2.jpg) -->
-        <div
-            class="bg-iskDark text-gray-300 text-xs md:text-sm py-2 px-4 border-b border-gray-800 sticky top-0 z-40 shadow-sm">
+        <div id="topbar-fixed"
+            class="bg-iskDark text-gray-300 text-xs md:text-sm py-2 px-4 border-b border-gray-800 fixed top-0 left-0 right-0 z-50 shadow-sm">
             <div
                 class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
 
@@ -281,6 +281,10 @@
                 </div>
             </div>
         </div>
+        <!-- Espaciador: reserva el espacio que ocupa la franja fija de arriba,
+             para que el menú/logo no queden tapados debajo de ella. Su altura
+             se ajusta sola con JS según el tamaño real de la franja. -->
+        <div id="topbar-spacer"></div>
 
         <!-- Menú de Navegación Principal -->
         <nav class="bg-white">
@@ -1002,6 +1006,16 @@ Si ya has creído o deseas conocer más profundamente el Evangelio, aquí encont
         // Usa una API gratuita (countapi.mileshilliard.com) para que el número se guarde
         // de verdad y vaya sumando entre todas las personas que entran a la página,
         // no solo en el navegador de cada quien. Empieza en 1230.
+        //
+        // IMPORTANTE (corrección): antes, si la consulta al servicio fallaba por
+        // CUALQUIER motivo (caída momentánea, límite de peticiones, red lenta, etc.),
+        // el código asumía "la clave no existe todavía" y reiniciaba el contador a
+        // 1230. Eso es lo que provocó que el número bajara de 1300 a 1230. Ahora:
+        //   1) Solo se reinicia a 1230 si el servidor confirma de verdad (404) que
+        //      la clave nunca se ha creado, no ante cualquier error de red.
+        //   2) Se guarda el último valor visto en localStorage (persiste entre
+        //      visitas y pestañas) como respaldo, y el número mostrado nunca baja
+        //      de ese valor aunque el servicio falle momentáneamente.
         function initVisitorCounter() {
             const countEl = document.getElementById('visitorCount');
             if (!countEl) return;
@@ -1009,38 +1023,95 @@ Si ya has creído o deseas conocer más profundamente el Evangelio, aquí encont
             const COUNTER_KEY = 'tlvd_org_visitas_totales';
             const BASE_VALUE = 1230;
             const API = 'https://countapi.mileshilliard.com/api/v1';
+            const LOCAL_CACHE_KEY = 'tlvd_visitas_cache_local';
+            const INIT_FLAG_KEY = 'tlvd_contador_ya_inicializado';
 
+            function getCache() {
+                const v = Number(localStorage.getItem(LOCAL_CACHE_KEY));
+                return isNaN(v) ? BASE_VALUE : v;
+            }
+
+            // Muestra un valor, pero nunca por debajo del último que ya se vio,
+            // y actualiza la caché local con el nuevo máximo.
             function mostrar(valor) {
                 const num = Number(valor);
-                countEl.textContent = isNaN(num) ? BASE_VALUE.toLocaleString('es-ES') : num.toLocaleString('es-ES');
+                const seguro = isNaN(num) ? getCache() : Math.max(num, getCache());
+                countEl.textContent = seguro.toLocaleString('es-ES');
+                localStorage.setItem(LOCAL_CACHE_KEY, String(seguro));
+            }
+
+            // Mostramos de inmediato el último valor conocido para que nunca
+            // se vea en blanco ni "baje" mientras responde el servidor.
+            mostrar(getCache());
+
+            function contarVisita() {
+                fetch(`${API}/hit/${COUNTER_KEY}`)
+                    .then(r => r.json())
+                    .then(data => mostrar(data.value))
+                    .catch(() => { /* se queda con el valor en caché, nunca se reinicia */ });
+            }
+
+            function soloConsultar() {
+                fetch(`${API}/get/${COUNTER_KEY}`)
+                    .then(r => {
+                        if (!r.ok) throw new Error('sin-datos');
+                        return r.json();
+                    })
+                    .then(data => mostrar(data.value))
+                    .catch(() => { /* se queda con el valor en caché */ });
             }
 
             // Si ya se contó esta visita en esta pestaña (evita sumar de más al navegar
             // entre secciones internas de la página), solo mostramos el valor actual.
             if (sessionStorage.getItem('tlvd_visita_contada')) {
-                fetch(`${API}/get/${COUNTER_KEY}`)
-                    .then(r => r.json())
-                    .then(data => mostrar(data.value))
-                    .catch(() => mostrar(BASE_VALUE));
+                soloConsultar();
                 return;
             }
 
-            fetch(`${API}/get/${COUNTER_KEY}`)
-                .then(r => {
-                    if (!r.ok) throw new Error('clave-no-existe');
-                    return fetch(`${API}/hit/${COUNTER_KEY}`).then(r2 => r2.json());
-                })
-                .catch(() => {
-                    // Primera vez que se usa la clave: se inicializa en 1230 y se cuenta esta visita
-                    return fetch(`${API}/set/${COUNTER_KEY}?value=${BASE_VALUE}`)
-                        .then(() => fetch(`${API}/hit/${COUNTER_KEY}`).then(r => r.json()));
-                })
-                .then(data => {
-                    mostrar(data.value);
-                    sessionStorage.setItem('tlvd_visita_contada', '1');
-                })
-                .catch(() => mostrar(BASE_VALUE));
+            // Si este navegador nunca ha confirmado que la clave existe en el
+            // servidor, lo verificamos primero antes de decidir si hay que crearla.
+            if (!localStorage.getItem(INIT_FLAG_KEY)) {
+                fetch(`${API}/get/${COUNTER_KEY}`)
+                    .then(r => {
+                        if (!r.ok) throw new Error('clave-no-existe');
+                        return r.json();
+                    })
+                    .then(data => {
+                        mostrar(data.value);
+                        localStorage.setItem(INIT_FLAG_KEY, '1');
+                        contarVisita();
+                        sessionStorage.setItem('tlvd_visita_contada', '1');
+                    })
+                    .catch(() => {
+                        // Solo entra aquí si el servidor confirmó (404) que la clave
+                        // de verdad no existe todavía: es la primerísima vez que se usa.
+                        fetch(`${API}/set/${COUNTER_KEY}?value=${BASE_VALUE}`)
+                            .then(() => {
+                                localStorage.setItem(INIT_FLAG_KEY, '1');
+                                contarVisita();
+                                sessionStorage.setItem('tlvd_visita_contada', '1');
+                            })
+                            .catch(() => { /* red caída: se queda con el valor en caché */ });
+                    });
+                return;
+            }
+
+            contarVisita();
+            sessionStorage.setItem('tlvd_visita_contada', '1');
         }
+
+        // Ajusta el espaciador debajo de la franja fija superior para que el
+        // menú/logo nunca queden tapados. Se recalcula al cargar y al cambiar
+        // el tamaño de la ventana, porque la franja cambia de alto entre
+        // celular (3 filas apiladas) y escritorio (1 fila).
+        function ajustarEspaciadorTopbar() {
+            const bar = document.getElementById('topbar-fixed');
+            const spacer = document.getElementById('topbar-spacer');
+            if (!bar || !spacer) return;
+            spacer.style.height = bar.offsetHeight + 'px';
+        }
+        window.addEventListener('resize', ajustarEspaciadorTopbar);
+        window.addEventListener('load', ajustarEspaciadorTopbar);
 
         // Apertura y cierre del Modal de Servicios/Detalles (Quiénes Somos, etc.)
         // Estas funciones no existían antes, por eso el botón "Saber más" no abría nada.
@@ -1262,6 +1333,7 @@ Si ya has creído o deseas conocer más profundamente el Evangelio, aquí encont
             try { if (typeof checkYouTubeLiveStatus === "function") checkYouTubeLiveStatus(); } catch (e) { console.warn("checkYouTubeLiveStatus:", e); }
             try { document.getElementById('currentYear').textContent = new Date().getFullYear(); } catch (e) { console.warn("currentYear:", e); }
             try { initVisitorCounter(); } catch (e) { console.warn("initVisitorCounter:", e); }
+            try { ajustarEspaciadorTopbar(); } catch (e) { console.warn("ajustarEspaciadorTopbar:", e); }
             // NOTA: ya NO se llama startCarouselTimer() aquí (ver más abajo).
         }
 
