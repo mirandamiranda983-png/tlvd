@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Himnario TLVD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/layout.css" />
+<link rel="stylesheet" href="css/songs.css" />
+</head>
+<body>
+
+<div id="loading-screen" style="min-height:100vh;display:grid;place-items:center;">
+  <p class="text-muted">Cargando…</p>
+</div>
+
+<div id="app-shell" class="app-shell" style="display:none;">
+  <div class="sidebar-backdrop"></div>
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-area">
+    <header class="topbar">
+      <button class="menu-toggle btn btn-ghost" aria-label="Abrir menú">☰</button>
+      <div></div>
+      <div class="topbar-actions">
+        <button class="theme-toggle" id="btn-theme" aria-label="Cambiar tema">◐</button>
+      </div>
+    </header>
+    <main class="content" id="route-view"></main>
+  </div>
+</div>
+
+<script type="module">
+  import { watchAuthState, logout } from "./js/auth.js";
+  import { initTheme, toggleTheme, renderSidebar, initMobileSidebar, toast } from "./js/ui.js";
+  import { initRouter, registerRoute, setNotFound } from "./js/router.js";
+  import { isAdmin } from "./js/roles.js";
+  import { viewInicio } from "./js/views/inicio.js";
+  import { viewCanciones, viewCancionForm } from "./js/views/canciones.js";
+  import { viewUsuarios } from "./js/views/usuarios.js";
+
+  initTheme();
+  document.getElementById("btn-theme").addEventListener("click", toggleTheme);
+
+  const unsub = watchAuthState(({ user, profile }) => {
+    if (!user || !profile) {
+      window.location.href = "login.html";
+      return;
+    }
+    unsub();
+    startApp(profile);
+  });
+
+  function startApp(profile) {
+    document.getElementById("loading-screen").style.display = "none";
+    document.getElementById("app-shell").style.display = "grid";
+
+    const sidebar = document.getElementById("sidebar");
+    sidebar.innerHTML = renderSidebar(profile, window.location.hash || "#/inicio");
+    document.getElementById("btn-logout")?.addEventListener("click", async () => {
+      await logout();
+      window.location.href = "login.html";
+    });
+    initMobileSidebar();
+
+    const view = document.getElementById("route-view");
+
+    registerRoute("/inicio", (el) => viewInicio(el, profile));
+
+    registerRoute("/canciones", (el) => viewCanciones(el, profile));
+    registerRoute("/canciones/nueva", (el) => {
+      if (!isAdmin(profile)) return el.replaceChildren(sinPermiso());
+      return viewCancionForm(el, profile, null);
+    });
+    registerRoute("/canciones/:id/editar", (el, params) => {
+      if (!isAdmin(profile)) return el.replaceChildren(sinPermiso());
+      return viewCancionForm(el, profile, params.id);
+    });
+
+    registerRoute("/usuarios", (el) => {
+      if (!isAdmin(profile)) return el.replaceChildren(sinPermiso());
+      return viewUsuarios(el, profile);
+    });
+
+    // Rutas de fases posteriores: por ahora solo un aviso para no
+    // dejar enlaces rotos en la navegación.
+    ["/mi-servicio", "/favoritos", "/cuenta", "/cantores", "/servicios", "/configuracion"].forEach(
+      (path) => registerRoute(path, (el) => el.replaceChildren(proximamente()))
+    );
+
+    setNotFound((el) => el.replaceChildren(proximamente()));
+
+    initRouter(view, (hash) => {
+      sidebar.querySelectorAll(".nav-list a").forEach((a) => {
+        a.classList.toggle("active", hash.startsWith(a.getAttribute("href")));
+      });
+    });
+  }
+
+  function proximamente() {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `<h2>Próximamente</h2><p>Esta sección se habilitará en una fase posterior del desarrollo.</p>`;
+    return div;
+  }
+
+  function sinPermiso() {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `<h2>Sin permiso</h2><p>Tu rol no tiene acceso a esta sección.</p>`;
+    return div;
+  }
+</script>
+</body>
+</html>

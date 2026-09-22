@@ -1,0 +1,98 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function myProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function myRole() {
+      return isSignedIn() ? myProfile().rol : null;
+    }
+
+    function isActive() {
+      return isSignedIn() && myProfile().activo == true;
+    }
+
+    function isAdmin() {
+      return isActive() && myRole() == 'admin';
+    }
+
+    function isCantor() {
+      return isActive() && myRole() == 'cantor';
+    }
+
+    function isMusico() {
+      return isActive() && myRole() == 'musico';
+    }
+
+    // ---------- users ----------
+    // Cada usuario lee su propio documento (necesario para saber su
+    // rol al iniciar sesión). El admin lee y escribe todos.
+    match /users/{uid} {
+      allow get: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+
+      // La cuenta de Authentication se crea desde el cliente usando
+      // una instancia secundaria e independiente (ver js/users.js),
+      // ya que el plan gratuito no tiene Cloud Functions. El
+      // documento de Firestore SÍ se crea aquí, directamente por el
+      // admin autenticado en la instancia principal. Nunca se
+      // permite crear un usuario ya con rol admin distinto al que
+      // ejecuta la creación... (la interfaz limita esto; aquí se
+      // exige como mínimo que solo un admin activo pueda crear).
+      allow create: if isAdmin()
+                    && request.resource.data.rol in ['admin', 'cantor', 'musico']
+                    && request.resource.data.activo == true;
+
+      allow update: if isAdmin()
+                    && request.auth.uid != uid
+                    && request.resource.data.rol in ['admin', 'cantor', 'musico'];
+
+      allow delete: if false; // desactivar en vez de borrar, para no perder historial
+    }
+
+    // ---------- songs ----------
+    // Lectura: cualquier usuario autenticado y activo.
+    // Escritura: solo admin (canción maestra).
+    match /songs/{songId} {
+      allow read: if isActive();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- services ----------
+    match /services/{serviceId} {
+      allow read: if isActive();
+      allow create: if isCantor();
+      allow update, delete: if isCantor() && resource.data.cantorId == request.auth.uid;
+    }
+
+    // ---------- service_songs ----------
+    match /service_songs/{itemId} {
+      allow read: if isActive();
+      allow create: if isCantor() && request.resource.data.cantorId == request.auth.uid;
+      allow update, delete: if isCantor() && resource.data.cantorId == request.auth.uid;
+    }
+
+    // ---------- favorites ----------
+    // Cada usuario administra solamente sus propios favoritos.
+    match /favorites/{favId} {
+      allow read: if isActive() && resource.data.uid == request.auth.uid;
+      allow create: if isActive() && request.resource.data.uid == request.auth.uid;
+      allow delete: if isActive() && resource.data.uid == request.auth.uid;
+    }
+
+    // ---------- user_prefs (tonalidad personal del músico) ----------
+    match /user_prefs/{prefId} {
+      allow read: if isActive() && resource.data.uid == request.auth.uid;
+      allow create, update: if isActive() && request.resource.data.uid == request.auth.uid;
+      allow delete: if isActive() && resource.data.uid == request.auth.uid;
+    }
+  }
+}

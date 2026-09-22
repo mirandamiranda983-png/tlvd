@@ -1,0 +1,67 @@
+/* ============================================================
+   HIMNARIO TLVD — songs.css
+   Tabla de biblioteca de canciones y usuarios.
+   ============================================================ */
+
+.songs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.songs-table th {
+  text-align: left;
+  padding: 12px 20px;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.songs-table td {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.songs-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.songs-table tbody tr:hover {
+  background: rgba(156, 107, 63, 0.05);
+}
+
+.row-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.songs-table select {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .songs-table thead { display: none; }
+  .songs-table, .songs-table tbody, .songs-table tr, .songs-table td {
+    display: block;
+    width: 100%;
+  }
+  .songs-table tr {
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+  }
+  .songs-table td {
+    border: none;
+    padding: 4px 0;
+  }
+  .row-actions { justify-content: flex-start; margin-top: 8px; }
+}

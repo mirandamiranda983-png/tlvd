@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Iniciar sesión — Himnario TLVD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+
+<div class="login-screen">
+  <div class="login-box">
+    <div class="login-brand">
+      <h1>Himnario TLVD</h1>
+      <p>Acceso interno · Iglesia TLVD</p>
+    </div>
+
+    <div class="login-card">
+      <!-- Panel: iniciar sesión -->
+      <div id="panel-login" class="login-panel">
+        <div id="login-error" class="login-error" role="alert"></div>
+        <form id="form-login">
+          <div class="field">
+            <label for="login-email">Correo electrónico</label>
+            <input type="email" id="login-email" required autocomplete="username" />
+          </div>
+          <div class="field">
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" required autocomplete="current-password" />
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-login">Entrar</button>
+        </form>
+        <div class="login-links">
+          <a href="#" id="link-forgot">Olvidé mi contraseña</a>
+        </div>
+      </div>
+
+      <!-- Panel: recuperar contraseña -->
+      <div id="panel-forgot" class="forgot-panel">
+        <div id="forgot-error" class="login-error" role="alert"></div>
+        <p style="margin-top:0;">Escribe tu correo y te enviaremos un enlace para restablecer tu contraseña.</p>
+        <form id="form-forgot">
+          <div class="field">
+            <label for="forgot-email">Correo electrónico</label>
+            <input type="email" id="forgot-email" required autocomplete="username" />
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-forgot">Enviar enlace</button>
+        </form>
+        <div class="login-links">
+          <a href="#" id="link-back">Volver a iniciar sesión</a>
+          <span></span>
+        </div>
+      </div>
+    </div>
+
+    <p class="login-hint">Las cuentas son creadas por un administrador. No hay registro público.</p>
+  </div>
+</div>
+
+<script type="module">
+  import { login, resetPassword, authErrorMessage, watchAuthState } from "./js/auth.js";
+  import { initTheme } from "./js/ui.js";
+
+  initTheme();
+
+  const panelLogin = document.getElementById("panel-login");
+  const panelForgot = document.getElementById("panel-forgot");
+  const loginError = document.getElementById("login-error");
+  const forgotError = document.getElementById("forgot-error");
+
+  // Si ya hay sesión activa y válida, ir directo a la app.
+  const unsub = watchAuthState(({ user }) => {
+    if (user) window.location.href = "app.html";
+    unsub();
+  });
+
+  document.getElementById("link-forgot").addEventListener("click", (e) => {
+    e.preventDefault();
+    panelLogin.classList.add("hide");
+    panelForgot.classList.add("show");
+  });
+
+  document.getElementById("link-back").addEventListener("click", (e) => {
+    e.preventDefault();
+    panelForgot.classList.remove("show");
+    panelLogin.classList.remove("hide");
+  });
+
+  document.getElementById("form-login").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    loginError.classList.remove("show");
+    const btn = document.getElementById("btn-login");
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+
+    btn.disabled = true;
+    btn.textContent = "Entrando…";
+    try {
+      await login(email, password);
+      window.location.href = "app.html";
+    } catch (err) {
+      loginError.textContent = authErrorMessage(err);
+      loginError.classList.add("show");
+      btn.disabled = false;
+      btn.textContent = "Entrar";
+    }
+  });
+
+  document.getElementById("form-forgot").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    forgotError.classList.remove("show");
+    const btn = document.getElementById("btn-forgot");
+    const email = document.getElementById("forgot-email").value.trim();
+
+    btn.disabled = true;
+    btn.textContent = "Enviando…";
+    try {
+      await resetPassword(email);
+      forgotError.style.color = "var(--success)";
+      forgotError.style.borderColor = "var(--success)";
+      forgotError.textContent = "Enlace enviado. Revisa tu correo.";
+      forgotError.classList.add("show");
+    } catch (err) {
+      forgotError.style.color = "var(--danger)";
+      forgotError.style.borderColor = "var(--danger)";
+      forgotError.textContent = authErrorMessage(err);
+      forgotError.classList.add("show");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Enviar enlace";
+    }
+  });
+</script>
+</body>
+</html>
