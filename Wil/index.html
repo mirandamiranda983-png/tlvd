@@ -1001,7 +1001,7 @@
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCS4QGSz_ZVBIrevOLT7Ad6DXVLfKxLmk",
+      apiKey: "AIzaSyCS4QGSz_ZVBIrevOLT7Ad6DXVLufKxLmk",
       authDomain: "tlvd-6cf32.firebaseapp.com",
       projectId: "tlvd-6cf32",
       storageBucket: "tlvd-6cf32.firebasestorage.app",
@@ -1106,7 +1106,9 @@
       } catch (error) {
         console.error("Auth Error:", error);
         let userMessage = 'No se pudo conectar con Firebase.';
-        if (error.code === 'auth/operation-not-allowed') {
+        if (error.code === 'auth/api-key-not-valid') {
+          userMessage = 'La API Key de Firebase no es válida o fue regenerada. Copia la API Key correcta desde Firebase Console.';
+        } else if (error.code === 'auth/operation-not-allowed') {
           userMessage = 'Debes activar "Correo/Contraseña" en Firebase Console > Authentication > Sign-in method.';
         } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
           userMessage = 'Correo o contraseña incorrectos.';
